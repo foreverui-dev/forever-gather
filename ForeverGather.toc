@@ -1,0 +1,25 @@
+## Interface: 16001
+## Title: Forever Gather
+## Notes: Shows every herb, ore and treasure node on world map and minimap, with farm routes, sharing and materials across all characters for WoW Forever.
+## Notes-deDE: Zeigt alle Kräuter, Erze und Schätze auf Welt- und Minikarte, mit Farmrouten, Teilen und Materialien aller Charaktere für WoW Forever.
+## Author: Syntaxlab
+## Version: @project-version@
+## SavedVariables: ForeverGatherDB
+## SavedVariablesPerCharacter: ForeverGatherCharDB
+## IconTexture: Interface\Icons\INV_Misc_Flower_02
+## X-Website: https://foreverui.de/addons/forever-gather/
+## X-Category: Professions
+
+Locale.lua
+Daten\Knoten.lua
+Daten\Materialien.lua
+Core.lua
+Position.lua
+Fundorte.lua
+Weltkarte.lua
+Minikarte.lua
+Lager.lua
+Routen.lua
+Teilen.lua
+Fenster.lua
+MinimapKnopf.lua

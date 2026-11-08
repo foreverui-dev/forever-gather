@@ -1,0 +1,29 @@
+<Bindings>
+  <Binding name="FOREVERGATHER_FENSTER" header="FOREVERGATHER" category="ADDONS">
+    ForeverGather:Taste("fenster")
+  </Binding>
+  <Binding name="FOREVERGATHER_ANZEIGE" category="ADDONS">
+    ForeverGather:Taste("anzeige")
+  </Binding>
+  <Binding name="FOREVERGATHER_NAECHSTER" category="ADDONS">
+    ForeverGather:Taste("naechster")
+  </Binding>
+  <Binding name="FOREVERGATHER_ROUTE" category="ADDONS">
+    ForeverGather:Taste("route")
+  </Binding>
+  <Binding name="FOREVERGATHER_WEITER" category="ADDONS">
+    ForeverGather:Taste("weiter")
+  </Binding>
+  <Binding name="FOREVERGATHER_AUFNAHME" category="ADDONS">
+    ForeverGather:Taste("aufnahme")
+  </Binding>
+  <Binding name="FOREVERGATHER_VORLESEN" category="ADDONS">
+    ForeverGather:Taste("vorlesen")
+  </Binding>
+  <Binding name="FOREVERGATHER_SITZUNG" category="ADDONS">
+    ForeverGather:Taste("sitzung")
+  </Binding>
+  <Binding name="FOREVERGATHER_EINSTELLUNGEN" category="ADDONS">
+    ForeverGather:Taste("einstellungen")
+  </Binding>
+</Bindings>

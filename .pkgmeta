@@ -1,0 +1,7 @@
+package-as: ForeverGather
+
+ignore:
+  - tests
+  - scripts
+  - README.md
+  - .github

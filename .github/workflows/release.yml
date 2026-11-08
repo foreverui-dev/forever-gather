@@ -1,0 +1,25 @@
+name: Release
+
+# Ein Tag wie v0.1.0 baut das Paket und lädt es zu CurseForge hoch.
+# Wago holt die Versionen selbst über die GitHub-Verknüpfung.
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_KEY: ${{ secrets.CF_API_KEY }}
+      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Testlauf
+        run: sudo apt-get update && sudo apt-get install -y lua5.1 && lua5.1 tests/simulation.lua
+      - name: Paket bauen und hochladen
+        uses: BigWigsMods/packager@v2
