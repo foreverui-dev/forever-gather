@@ -253,7 +253,6 @@ function T:Erhalten(code, von)
   FG:Sprechen(L"%s möchte dir die Route %s schicken.":format(von, r.name))
 end
 
-StaticPopupDialogs = StaticPopupDialogs or {}
 StaticPopupDialogs.FOREVERGATHER_ROUTE = {
   text = L"%s schickt dir die Farmroute „%s“. Übernehmen?",
   button1 = L"Übernehmen",

@@ -101,7 +101,6 @@ function W:FundKlick(karte, f, taste)
   end
 end
 
-StaticPopupDialogs = StaticPopupDialogs or {}
 StaticPopupDialogs.FOREVERGATHER_LOESCHEN = {
   text = L"Fundort „%s“ löschen?",
   button1 = L"Löschen",

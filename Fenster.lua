@@ -315,7 +315,6 @@ bauen.karte = function(s)
   l:SetPoint("TOPLEFT", 0, -198)
 end
 
-StaticPopupDialogs = StaticPopupDialogs or {}
 StaticPopupDialogs.FOREVERGATHER_TYP_LOESCHEN = {
   text = L"Alle %d Fundorte von „%s“ löschen?",
   button1 = L"Löschen", button2 = L"Abbrechen",

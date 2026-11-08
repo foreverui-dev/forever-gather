@@ -126,7 +126,6 @@ local function ZielePruefenNachLager()
   end
 end
 
-StaticPopupDialogs = StaticPopupDialogs or {}
 StaticPopupDialogs.FOREVERGATHER_ZIEL = {
   text = L"Sammelziel für %s (Anzahl, 0 entfernt):",
   button1 = L"Übernehmen", button2 = L"Abbrechen",
