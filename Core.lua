@@ -28,7 +28,6 @@ FG.STANDARD = {
   pinGroesse = 16,
   minikartePinGroesse = 13,
   minikarteRand = false,    -- entfernte Fundorte am Rand der Minikarte zeigen
-  minikarteNachbarn = true, -- auch Fundorte aus Höhlen/Unterkarten der Zone
   -- Erfassen
   zusammenfassen = 15,      -- Meter: so nah beieinander gilt als derselbe Fundort
   teilenGruppe = true,      -- neue Funde an die Gruppe senden (nur andere Forever-Gather-Nutzer)
@@ -48,6 +47,19 @@ FG.STANDARD = {
   routeMinikarte = true,
   aufnahmeAbstand = 30,     -- Meter zwischen zwei Punkten bei der Aufnahme
   wegpunktAbstand = 25,     -- Meter, ab denen der nächste Punkt der Route dran ist
+  -- 0.2
+  abgeerntetMinuten = 5,    -- so lange gilt ein Fundort nach dem Ernten als leer (0 = aus)
+  nurSkillpunkte = false,   -- nur Vorkommen, die noch Fertigkeitspunkte bringen
+  radar = false,            -- Radar-Fenster mit den nächsten Fundorten
+  radarPos = nil,
+  radarZeilen = 5,
+  klang = false,            -- Klang, wenn ein Fundort in Reichweite kommt
+  kampfAusblenden = true,   -- im Kampf keine Symbole auf der Minikarte
+  seltenHervorheben = true, -- seltene Vorkommen größer
+  seltenAlarm = true,       -- Alarm, wenn ein seltenes Vorkommen in der Nähe ist
+  kontinent = true,         -- Fundorte auch auf der Kontinentkarte
+  zieleHervorheben = true,  -- Vorkommen mit offenem Sammelziel größer
+  rundenAnsage = true,      -- Ansage, wenn eine Runde der Route geschafft ist
   -- Allgemein
   minimapKnopf = true,
   minimapWinkel = 200,
@@ -130,6 +142,25 @@ function FG:Sprechen(text, immer)
     end
   end
   return false
+end
+
+---------------------------------------------------------------------------
+-- Geschützte Werte: Der Client von WoW Forever gibt manche Texte und Zahlen (z. B. in
+-- Tooltips) als „geheime“ Werte heraus. Mit ihnen darf ein Addon weder vergleichen noch
+-- sie als Tabellenschlüssel benutzen. FG.Frei liefert den Wert nur, wenn er benutzbar ist.
+---------------------------------------------------------------------------
+local function vergleichbar(v) return v == v end
+function FG.Geheim(v)
+  if v == nil then return false end
+  if issecretvalue then
+    local ok, geheim = pcall(issecretvalue, v)
+    if not ok or geheim then return true end
+  end
+  return not pcall(vergleichbar, v)
+end
+function FG.Frei(v)
+  if v == nil or FG.Geheim(v) then return nil end
+  return v
 end
 
 ---------------------------------------------------------------------------
@@ -338,6 +369,9 @@ FG:Ereignis("ADDON_LOADED", function(name)
   root.typen = root.typen or {}           -- gelernte Vorkommen: [Typ] = { art, name, item }
   root.routen = root.routen or {}         -- siehe Routen.lua
   root.charaktere = root.charaktere or {} -- siehe Lager.lua
+  root.tage = root.tage or {}             -- Tagesstatistik [JJJJ-MM-TT] (Statistik.lua)
+  root.gesamt = root.gesamt or {}         -- [Gegenstand] = Menge insgesamt
+  ForeverGatherCharDB.ziele = ForeverGatherCharDB.ziele or {} -- [Gegenstand] = Zielmenge
   root.version = 1
   FG.root, FG.char = root, ForeverGatherCharDB
   FG:ProfilLaden()
@@ -471,6 +505,8 @@ BINDING_NAME_FOREVERGATHER_AUFNAHME = L"Routenaufnahme starten oder beenden"
 BINDING_NAME_FOREVERGATHER_VORLESEN = L"Umgebung vorlesen"
 BINDING_NAME_FOREVERGATHER_SITZUNG = L"Sitzungsanzeige ein oder aus"
 BINDING_NAME_FOREVERGATHER_EINSTELLUNGEN = L"Einstellungen öffnen"
+BINDING_NAME_FOREVERGATHER_RADAR = L"Radar ein oder aus"
+BINDING_NAME_FOREVERGATHER_MERKEN = L"Vorkommen unter der Maus merken"
 
 FG.tasten = {}
 function FG:Taste(was)

@@ -28,6 +28,8 @@ end
 -- Typ aus Objektnummer, Name und Art bestimmen (und unbekannte Vorkommen lernen).
 function F:TypVon(objekt, name, art)
   if objekt and FG.KNOTEN[objekt] then return "o" .. objekt end
+  name = FG.Frei(name)
+  if type(name) ~= "string" then name = nil end
   if not namenIndex then IndexBauen() end
   if name and namenIndex[name] then return namenIndex[name] end
   local typ
@@ -45,9 +47,19 @@ function F:TypVon(objekt, name, art)
 end
 
 function F:TypNachName(name)
-  if not name then return end
+  name = FG.Frei(name)
+  if type(name) ~= "string" then return end
   if not namenIndex then IndexBauen() end
   return namenIndex[name]
+end
+
+-- Letzter Ausweg, wenn weder Objekt noch Name bekannt sind: Vorkommen über das Material.
+function F:TypNachItem(item, art)
+  local best
+  for id, k in pairs(FG.KNOTEN) do
+    if k[5] == item and (not art or k[1] == art) and (not best or id < best) then best = id end
+  end
+  return best and ("o" .. best) or nil
 end
 
 function F:Art(typ)
@@ -134,6 +146,12 @@ function F:BerufeLesen()
       end
     end
   end
+  local c = FG.root and FG.root.charaktere
+  if c then
+    local key = FG:CharKey()
+    c[key] = c[key] or { taschen = {}, bank = {} }
+    c[key].berufe = { kraut = fertigkeit.kraut, erz = fertigkeit.erz }
+  end
   FG:Rufe("fundorte")
 end
 
@@ -169,7 +187,24 @@ function F:Sichtbar(typ)
   if not db.zeigen[art] or db.ausgeblendet[typ] then return false end
   if db.nurEigenerBeruf and self.berufeBekannt and art ~= "schatz" and not self:Fertigkeit(art) then return false end
   if db.nurAbbaubar and self:Abbaubar(typ) == false then return false end
+  if db.nurSkillpunkte and self.Farbstufe then
+    local s = self:Farbstufe(typ)
+    if s == "grau" or s == "rot" then return false end
+  end
   return true
+end
+
+-- Einzelner Fundort: Favoriten sind immer sichtbar.
+function F:FundSichtbar(f)
+  return f.fav or self:Sichtbar(f.t)
+end
+
+-- Restzeit in Sekunden, solange ein selbst abgeernteter Fundort vermutlich noch leer ist.
+function F:Abgeerntet(f)
+  local min = FG.db.abgeerntetMinuten or 0
+  if min <= 0 or not f.g then return end
+  local rest = f.g + min * 60 - time()
+  if rest > 0 then return rest end
 end
 
 -- Fügt einen Fund hinzu oder zählt einen nahen gleichen Fund hoch. Gibt Fund, neu zurück.
@@ -256,7 +291,7 @@ function F:Naechster(nurAbbaubar)
   if not karte then return end
   local best, bestM
   for _, f in ipairs(self:Liste(karte)) do
-    if self:Sichtbar(f.t) and (not nurAbbaubar or self:Abbaubar(f.t) ~= false) then
+    if self:FundSichtbar(f) and not self:Abgeerntet(f) and (not nurAbbaubar or self:Abbaubar(f.t) ~= false) then
       local m = P:Entfernung(karte, px, py, f.x, f.y) or ((f.x - px) ^ 2 + (f.y - py) ^ 2)
       if not bestM or m < bestM then best, bestM = f, m end
     end
@@ -271,6 +306,8 @@ local zauberNamen   -- [Name des Zaubers] = Art
 local offen         -- laufender Sammelversuch
 
 local function ZauberArt(id)
+  id = FG.Frei(id)
+  if not id then return end
   if FG.SAMMELZAUBER[id] then return FG.SAMMELZAUBER[id] end
   if not zauberNamen then
     zauberNamen = {}
@@ -286,6 +323,7 @@ end
 F.ZauberArt = ZauberArt
 
 local function ObjektAusGUID(guid)
+  guid = FG.Frei(guid)
   if type(guid) ~= "string" then return end
   return tonumber(guid:match("^GameObject%-[^-]*%-[^-]*%-[^-]*%-[^-]*%-(%d+)"))
 end
@@ -297,6 +335,7 @@ local function Aufzeichnen(objekt, beute)
   if not o or o.fertig then return end
   o.fertig = true
   local typ = F:TypVon(objekt, o.ziel, o.art)
+  if not typ and beute and beute[1] then typ = F:TypNachItem(beute[1].item, o.art) end
   if typ and beute and beute[1] then
     local t = FG.root.typen[typ]
     if t and not t.item then t.item = beute[1].item end
@@ -304,6 +343,7 @@ local function Aufzeichnen(objekt, beute)
   local fund, neu
   if typ and o.karte then
     fund, neu = F:Hinzufuegen(o.karte, o.x, o.y, typ, nil, 1)
+    if fund then fund.g = time() end
     if neu then FG:Rufe("neuerFund", o.karte, fund) end
   end
   F:SitzungZaehlen(o.art, beute)
@@ -320,14 +360,18 @@ function F:Start()
     local art = ZauberArt(zauber)
     if not art then return end
     local karte, x, y = P:Spieler()
-    offen = { art = art, ziel = ziel ~= "" and ziel or nil, guid = guid, zeit = GetTime(), karte = karte, x = x, y = y }
+    ziel, guid = FG.Frei(ziel), FG.Frei(guid)
+    if type(ziel) ~= "string" or ziel == "" then ziel = nil end
+    offen = { art = art, ziel = ziel, guid = guid, zeit = GetTime(), karte = karte, x = x, y = y }
   end)
   local function Abbruch(einheit, guid)
+    guid = FG.Frei(guid)
     if einheit == "player" and offen and (not offen.guid or offen.guid == guid) and not offen.ok then offen = nil end
   end
   FG:Ereignis("UNIT_SPELLCAST_FAILED", Abbruch)
   FG:Ereignis("UNIT_SPELLCAST_INTERRUPTED", Abbruch)
   FG:Ereignis("UNIT_SPELLCAST_SUCCEEDED", function(einheit, guid)
+    guid = FG.Frei(guid)
     if einheit ~= "player" or not offen or (offen.guid and guid and offen.guid ~= guid) then return end
     offen.ok = true
     local o = offen
@@ -341,11 +385,11 @@ function F:Start()
     local anzahl = GetNumLootItems and GetNumLootItems() or 0
     for i = 1, anzahl do
       if not objekt and GetLootSourceInfo then objekt = ObjektAusGUID((GetLootSourceInfo(i))) end
-      local link = GetLootSlotLink and GetLootSlotLink(i)
-      local item = link and tonumber(link:match("item:(%d+)"))
+      local link = FG.Frei(GetLootSlotLink and GetLootSlotLink(i))
+      local item = type(link) == "string" and tonumber(link:match("item:(%d+)"))
       if item then
         local _, _, menge = GetLootSlotInfo(i)
-        beute[#beute + 1] = { item = item, menge = tonumber(menge) or 1 }
+        beute[#beute + 1] = { item = item, menge = tonumber(FG.Frei(menge)) or 1 }
       end
     end
     Aufzeichnen(objekt, beute)
@@ -468,7 +512,7 @@ function F:Umgebung()
   if not karte then return L"Deine Position ist hier nicht bekannt." end
   local liste = {}
   for _, f in ipairs(self:Liste(karte)) do
-    if self:Sichtbar(f.t) then
+    if self:FundSichtbar(f) then
       liste[#liste + 1] = { f = f, m = P:Entfernung(karte, px, py, f.x, f.y) or 0 }
     end
   end

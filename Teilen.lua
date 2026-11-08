@@ -215,7 +215,10 @@ local function Empfangen(text, kanal, absender)
     local artLang = ARTKURZ[a] or "kraut"
     if typ:sub(1, 2) == "n:" then typ = F:TypVon(nil, typ:sub(3), artLang)
     elseif not F:Knoten(typ) and not FG.root.typen[typ] then FG.root.typen[typ] = { art = artLang } end
-    F:Hinzufuegen(karte, x, y, typ, name)
+    local _, neu = F:Hinzufuegen(karte, x, y, typ, name)
+    if neu and FG.db.seltenAlarm and F:Selten(typ) and F:Abbaubar(typ) ~= false then
+      FG.Extras:Alarm(L"%s hat %s gefunden (%s).":format(name, F:Name(typ), P:KartenName(karte)))
+    end
   elseif art == "C~" then
     local id, nr, gesamt, stueck = text:match("^C~(%w+)~(%d+)~(%d+)~(.*)$")
     nr, gesamt = tonumber(nr), tonumber(gesamt)
@@ -267,7 +270,8 @@ function T:Start()
   if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then C_ChatInfo.RegisterAddonMessagePrefix(PRAEFIX)
   elseif RegisterAddonMessagePrefix then RegisterAddonMessagePrefix(PRAEFIX) end
   FG:Ereignis("CHAT_MSG_ADDON", function(praefix, text, kanal, absender)
-    if praefix == PRAEFIX and type(text) == "string" and absender then Empfangen(text, kanal, absender) end
+    praefix, text, absender = FG.Frei(praefix), FG.Frei(text), FG.Frei(absender)
+    if praefix == PRAEFIX and type(text) == "string" and type(absender) == "string" then Empfangen(text, kanal, absender) end
   end)
   FG:Haken("neuerFund", FundSenden)
 end

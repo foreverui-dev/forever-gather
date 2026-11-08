@@ -5,7 +5,7 @@ local Fe = FG:Modul("Fenster")
 local F, P, R, La, T = FG.Fundorte, FG.Position, FG.Routen, FG.Lager, FG.Teilen
 local L = FG.L
 
-local BREITE, HOEHE = 580, 450
+local BREITE, HOEHE = 640, 480
 local fenster, reiterKnoepfe, seiten = nil, {}, {}
 local aktuell = "start"
 local elemente = {}   -- alles mit Auffrischen()
@@ -15,7 +15,9 @@ local REITER = {
   { "karte", L"Karte" },
   { "routen", L"Routen" },
   { "lager", L"Lager" },
+  { "statistik", L"Statistik" },
   { "teilen", L"Teilen" },
+  { "hilfen", L"Hilfen" },
   { "einstellungen", L"Einstellungen" },
 }
 
@@ -211,6 +213,12 @@ bauen.start = function(s)
   sitzung:SetPoint("TOPLEFT", 0, -130)
   local zeile = Text(s, "GameFontHighlightSmall", "", BREITE - 40)
   zeile:SetPoint("TOPLEFT", 0, -244)
+  local ziele = Text(s, "GameFontHighlightSmall", "", BREITE - 40)
+  ziele:SetPoint("TOPLEFT", 0, -260)
+  merke({ Auffrischen = function()
+    local t = FG.Extras:ZieleText()
+    ziele:SetText(t ~= "" and (L"Ziele: %s":format(t)) or L"Kein Sammelziel. Rechtsklick auf ein Material im Lager setzt eins.")
+  end })
   merke({ Auffrischen = function()
     local st = FG.sitzung
     if st.funde == 0 then zeile:SetText(L"Noch nichts gesammelt in dieser Sitzung.")
@@ -222,18 +230,24 @@ bauen.start = function(s)
   end })
 
   local k1 = Knopf(s, L"Nächster Fundort", 170, function() FG.befehle.naechster("") end)
-  k1:SetPoint("TOPLEFT", 0, -276)
+  k1:SetPoint("TOPLEFT", 0, -284)
   local k2 = Knopf(s, L"Route für diese Gegend", 170, function() FG.befehle.route("neu") end)
   k2:SetPoint("LEFT", k1, "RIGHT", 10, 0)
   local k3 = Knopf(s, L"Umgebung vorlesen", 170, function() FG.befehle.vorlesen("") end)
   k3:SetPoint("LEFT", k2, "RIGHT", 10, 0)
   local k4 = Knopf(s, L"Sitzung neu", 170, function() F:SitzungNeu() end)
-  k4:SetPoint("TOPLEFT", 0, -304)
+  k4:SetPoint("TOPLEFT", 0, -312)
   local k5 = Knopf(s, L"Sitzungsanzeige", 170, function() Fe:SitzungsAnzeigeUmschalten() end)
   k5:SetPoint("LEFT", k4, "RIGHT", 10, 0)
+  local k6 = Knopf(s, L"Radar", 170, function() FG.Radar:Umschalten() end)
+  k6:SetPoint("LEFT", k5, "RIGHT", 10, 0)
+  local k7 = Knopf(s, L"Bericht in den Chat", 170, function() FG.Extras:Bericht() end)
+  k7:SetPoint("TOPLEFT", 0, -340)
+  local k8 = Knopf(s, L"Vorkommen merken", 170, function() FG.Extras:Merken() end)
+  k8:SetPoint("LEFT", k7, "RIGHT", 10, 0)
   local tipp = Text(s, "GameFontDisableSmall", L"Tipp: Klick auf einen Fundort auf der Karte setzt einen Wegpunkt, Rechtsklick löscht ihn. "
     .. L"Alle Funktionen haben Tastenkürzel (Tastaturbelegung › AddOns).", BREITE - 40)
-  tipp:SetPoint("TOPLEFT", 0, -344)
+  tipp:SetPoint("TOPLEFT", 0, -372)
 end
 
 bauen.karte = function(s)
@@ -243,16 +257,18 @@ bauen.karte = function(s)
     { L"Nur eigene Berufe", L"Kräuter nur mit Kräuterkunde, Erze nur mit Bergbau.", "nurEigenerBeruf" },
     { L"Nur abbaubare", L"Vorkommen über deiner Fertigkeit ausblenden.", "nurAbbaubar" },
     { L"Entfernte am Rand", L"Fundorte außerhalb der Minikarte am Rand zeigen.", "minikarteRand" },
+    { L"Nur mit Fertigkeitspunkten", L"Graue Vorkommen ausblenden, die nichts mehr bringen.", "nurSkillpunkte" },
+    { L"Auf der Kontinentkarte", L"Fundorte aller Gegenden auch auf der Übersichtskarte.", "kontinent" },
   }
   for i, e in ipairs(liste) do
     local f = DbSchalter(s, e[1], e[2], e[3])
-    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 280, -math.floor((i - 1) / 2) * 40)
+    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -math.floor((i - 1) / 2) * 40)
   end
   local groesse = Text(s, "GameFontNormal", "")
-  groesse:SetPoint("TOPLEFT", 280, -86)
+  groesse:SetPoint("TOPLEFT", 300, -126)
   merke({ Auffrischen = function() groesse:SetText(L"Symbolgröße: %d":format(FG.db.pinGroesse)) end })
   local minus = Knopf(s, "–", 26, function() FG.db.pinGroesse = math.max(10, FG.db.pinGroesse - 2); FG.db.minikartePinGroesse = math.max(8, FG.db.minikartePinGroesse - 1); FG:Anwenden() end)
-  minus:SetPoint("TOPLEFT", 410, -82)
+  minus:SetPoint("TOPLEFT", 430, -122)
   local plus = Knopf(s, "+", 26, function() FG.db.pinGroesse = math.min(32, FG.db.pinGroesse + 2); FG.db.minikartePinGroesse = math.min(24, FG.db.minikartePinGroesse + 1); FG:Anwenden() end)
   plus:SetPoint("LEFT", minus, "RIGHT", 4, 0)
 
@@ -260,12 +276,22 @@ bauen.karte = function(s)
   local namen = { kraut = L"Kräuter", erz = L"Erze", schatz = L"Schätze" }
   for i, art in ipairs(FG.ARTEN_REIHE) do
     local k = Karte(s, 120, 26, namen[art], function() return Fe.kartenArt == art end, function() Fe.kartenArt = art end)
-    k:SetPoint("TOPLEFT", (i - 1) * 126, -124)
+    k:SetPoint("TOPLEFT", (i - 1) * 126, -164)
   end
-  local l = Liste(s, BREITE - 40, 9, 22, function() return F:Typen(Fe.kartenArt) end, function(z, typ)
+  local auf = Knopf(s, L"Aufräumen", 120, function() FG.Extras:Aufraeumen() end)
+  auf:SetPoint("TOPLEFT", BREITE - 160, -166)
+  local l = Liste(s, BREITE - 40, 8, 22, function() return F:Typen(Fe.kartenArt) end, function(z, typ)
     z.icon:SetTexture(F:Symbol(typ))
     local stufe = F:Stufe(typ)
     z.links:SetText(stufe and ("%s (%d)"):format(F:Name(typ), stufe) or F:Name(typ))
+    local fs = F:Farbstufe(typ)
+    if fs then
+      local r, g, b, wort = FG:StufenFarbe(fs)
+      z.links:SetTextColor(r, g, b)
+      z.links:SetText(z.links:GetText() .. " · " .. wort)
+    else
+      z.links:SetTextColor(1, 1, 1)
+    end
     local aus = FG.db.ausgeblendet[typ]
     z.rechts:SetText(L"%d Fundorte · %s":format(F:Anzahl(typ), aus and L"aus" or L"an"))
     z.icon:SetAlpha(aus and 0.35 or 1)
@@ -286,7 +312,7 @@ bauen.karte = function(s)
     GameTooltip:AddLine(L"Rechtsklick: alle Fundorte dieser Sorte löschen", 0.8, 0.8, 0.8)
     GameTooltip:Show()
   end)
-  l:SetPoint("TOPLEFT", 0, -158)
+  l:SetPoint("TOPLEFT", 0, -198)
 end
 
 StaticPopupDialogs = StaticPopupDialogs or {}
@@ -329,6 +355,10 @@ bauen.routen = function(s)
     GameTooltip:SetOwner(z, "ANCHOR_RIGHT")
     GameTooltip:AddLine(r.name)
     if r.von then GameTooltip:AddLine(L"Von %s":format(r.von), 0.8, 0.8, 0.8) end
+    GameTooltip:AddLine(R:DauerText(r), 0.8, 0.8, 0.8)
+    if r.runden then
+      GameTooltip:AddLine(L"%d Runden, beste %s, zuletzt %d Stück":format(r.runden, FG:ZeitText(r.bestzeit or 0), r.ertrag or 0), 0.8, 0.8, 0.8)
+    end
     GameTooltip:AddLine(L"Klick: auswählen", 0.6, 0.6, 0.6)
     GameTooltip:Show()
   end)
@@ -390,8 +420,11 @@ bauen.lager = function(s)
     z.icon:SetTexture(F:ItemSymbol(e.item))
     z.links:SetText(e.name)
     local _, liste = La:Bestand(e.item)
-    z.rechts:SetText(L"%d auf %d Charakteren":format(e.menge, #liste))
-  end, function(e)
+    local ziel = FG.char.ziele[e.item]
+    z.rechts:SetText(L"%d auf %d Charakteren":format(e.menge, #liste)
+      .. (ziel and (" · " .. L"Ziel %d/%d":format(math.min(FG.Extras:Stand(e.item), ziel), ziel)) or ""))
+  end, function(e, taste)
+    if taste == "RightButton" then FG.Extras:ZielFragen(e.item); return end
     local summe, liste = La:Bestand(e.item)
     local teile = {}
     for _, c in ipairs(liste) do teile[#teile + 1] = ("%s %d"):format(c.name, c.taschen + c.bank) end
@@ -400,6 +433,8 @@ bauen.lager = function(s)
     GameTooltip:SetOwner(z, "ANCHOR_RIGHT")
     GameTooltip:AddLine(e.name)
     La:TooltipItem(GameTooltip, e.item)
+    GameTooltip:AddLine(L"Rechtsklick: Sammelziel setzen", 0.6, 0.6, 0.6)
+    GameTooltip:Show()
   end)
   l:SetPoint("TOPLEFT", 0, -64)
   local hinweis = Text(s, "GameFontDisableSmall", L"Taschen werden immer gezählt, die Bank, sobald du sie öffnest. "
@@ -418,6 +453,9 @@ bauen.teilen = function(s)
   box:SetFontObject("ChatFontNormal")
   box:SetWidth(BREITE - 80)
   box:SetMaxLetters(0)
+  box:SetHeight(108)
+  rahmen:EnableMouse(true)
+  rahmen:SetScript("OnMouseDown", function() box:SetFocus() end)
   box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
   rahmen:SetScrollChild(box)
   Fe.codeBox = box
@@ -449,7 +487,7 @@ bauen.teilen = function(s)
   }
   for i, e in ipairs(liste) do
     local f = DbSchalter(s, e[1], e[2], e[3])
-    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 280, -180 - math.floor((i - 1) / 2) * 40)
+    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -180 - math.floor((i - 1) / 2) * 40)
   end
   local t = Text(s, "GameFontNormal", L"Geschickte Routen")
   t:SetPoint("TOPLEFT", 0, -266)
@@ -462,6 +500,91 @@ bauen.teilen = function(s)
   tipp:SetPoint("TOPLEFT", 0, -300)
 end
 
+bauen.statistik = function(s)
+  local St = FG.Statistik
+  local kopf = Text(s, "GameFontHighlight", "", BREITE - 40)
+  kopf:SetPoint("TOPLEFT", 0, 0)
+  merke({ Auffrischen = function()
+    local summe = St:Gesamt()
+    local b = FG.root.besteSitzung
+    local t = L"Insgesamt %d Stück gesammelt.":format(summe)
+    if b then t = t .. " " .. L"Beste Sitzung: %d Funde am %s.":format(b.funde, St:TagText(b.datum)) end
+    kopf:SetText(t)
+  end })
+  local t1 = Text(s, "GameFontNormal", L"Letzte Tage")
+  t1:SetPoint("TOPLEFT", 0, -24)
+  local tage = Liste(s, BREITE - 40, 5, 22, function() return St:Tage(14) end, function(z, e)
+    z.icon:SetTexture(134939)
+    z.links:SetText(St:TagText(e.tag))
+    local r = L"%d Funde · %d Stück":format(e.t.funde, e.t.stueck)
+    if FG.db.wert and e.t.wert > 0 then r = r .. " · " .. FG:GeldText(e.t.wert) end
+    z.rechts:SetText(r)
+  end, function(e) FG:Sprechen(("%s: %d %s"):format(St:TagText(e.tag), e.t.stueck, L"Stück"), true) end)
+  tage:SetPoint("TOPLEFT", 0, -42)
+  local t2 = Text(s, "GameFontNormal", L"Beste Gegenden für dich")
+  t2:SetPoint("TOPLEFT", 0, -162)
+  local zonen = Liste(s, BREITE - 40, 8, 22, function() return St:Zonen() end, function(z, e)
+    z.icon:SetTexture(e.erz > e.kraut and FG.ARTEN.erz.symbol or FG.ARTEN.kraut.symbol)
+    z.links:SetText(e.name)
+    z.rechts:SetText(St:ZonenText(e))
+  end, function(e)
+    St:KarteOeffnen(e.karte)
+    FG:Sprechen(e.name .. ": " .. St:ZonenText(e))
+  end, function(z, e)
+    GameTooltip:SetOwner(z, "ANCHOR_RIGHT")
+    GameTooltip:AddLine(e.name)
+    GameTooltip:AddLine(L"%d Fundorte, %d davon kannst du abbauen.":format(e.gesamt, e.abbaubar), 0.8, 0.8, 0.8)
+    GameTooltip:AddLine(L"Klick: Karte öffnen", 0.6, 0.6, 0.6)
+    GameTooltip:Show()
+  end)
+  zonen:SetPoint("TOPLEFT", 0, -180)
+end
+
+bauen.hilfen = function(s)
+  local liste = {
+    { L"Radar", L"Fenster mit den nächsten Fundorten, Pfeil und Entfernung.", "radar" },
+    { L"Nahe Fundorte ansagen", L"Name, Entfernung und Richtung als Uhrzeit.", "ansage" },
+    { L"Klang in der Nähe", L"Kurzer Ton, wenn ein Fundort in Reichweite kommt.", "klang" },
+    { L"Alarm bei Seltenem", L"Schwarzer Lotus, Echtsilber und Co. in der Nähe melden.", "seltenAlarm" },
+    { L"Seltenes hervorheben", L"Seltene Vorkommen größer und gold umrandet.", "seltenHervorheben" },
+    { L"Sammelziele hervorheben", L"Vorkommen für offene Ziele größer.", "zieleHervorheben" },
+    { L"Im Kampf ausblenden", L"Keine Symbole auf der Minikarte während eines Kampfs.", "kampfAusblenden" },
+    { L"Runden ansagen", L"Zeit und Ertrag nach jeder Runde einer Route.", "rundenAnsage" },
+  }
+  for i, e in ipairs(liste) do
+    local f = DbSchalter(s, e[1], e[2], e[3])
+    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -math.floor((i - 1) / 2) * 40)
+  end
+  local leer = Text(s, "GameFontNormal", "")
+  leer:SetPoint("TOPLEFT", 0, -172)
+  merke({ Auffrischen = function()
+    local m = FG.db.abgeerntetMinuten or 0
+    leer:SetText(m > 0 and L"Nach dem Ernten %d Min. als leer zeigen":format(m) or L"Abgeerntete Fundorte nicht markieren")
+  end })
+  local minus = Knopf(s, "–", 26, function() FG.db.abgeerntetMinuten = math.max(0, (FG.db.abgeerntetMinuten or 0) - 1); FG:Anwenden() end)
+  minus:SetPoint("TOPLEFT", 330, -168)
+  local plus = Knopf(s, "+", 26, function() FG.db.abgeerntetMinuten = math.min(30, (FG.db.abgeerntetMinuten or 0) + 1); FG:Anwenden() end)
+  plus:SetPoint("LEFT", minus, "RIGHT", 4, 0)
+  local t = Text(s, "GameFontNormal", L"Sammelziele")
+  t:SetPoint("TOPLEFT", 0, -204)
+  local ziele = Liste(s, BREITE - 40, 5, 22, function() return FG.Extras:Ziele() end, function(z, e)
+    z.icon:SetTexture(F:ItemSymbol(e.item))
+    z.links:SetText(e.name)
+    z.rechts:SetText(("%d / %d"):format(math.min(e.stand, e.ziel), e.ziel) .. (e.stand >= e.ziel and (" · " .. L"erreicht") or ""))
+  end, function(e, taste)
+    if taste == "RightButton" then FG.Extras:ZielSetzen(e.item, 0) else FG.Extras:ZielFragen(e.item) end
+  end, function(z, e)
+    GameTooltip:SetOwner(z, "ANCHOR_RIGHT")
+    GameTooltip:AddLine(e.name)
+    GameTooltip:AddLine(L"Klick: ändern · Rechtsklick: entfernen", 0.6, 0.6, 0.6)
+    GameTooltip:Show()
+  end)
+  ziele:SetPoint("TOPLEFT", 0, -222)
+  local tipp = Text(s, "GameFontDisableSmall", L"Ziele setzt du per Rechtsklick im Lager oder mit /fg ziel 40 Friedensblume. "
+    .. L"Gezählt wird, was dieser Charakter in Taschen und Bank hat.", BREITE - 40)
+  tipp:SetPoint("TOPLEFT", 0, -340)
+end
+
 bauen.einstellungen = function(s)
   local t1 = Text(s, "GameFontNormal", L"Barrierefreiheit")
   t1:SetPoint("TOPLEFT", 0, 0)
@@ -471,11 +594,11 @@ bauen.einstellungen = function(s)
     { L"Farbenblind-Modus", L"Blau und Orange statt Grün und Rot.", "farbenblind" },
     { L"Alles größer", L"Fenster und Kartensymbole ein Viertel größer.", "allesGroesser" },
     { L"Weniger Bewegung", L"Keine Einblendeffekte.", "wenigerBewegung" },
-    { L"Nahe Fundorte ansagen", L"Name, Entfernung und Richtung als Uhrzeit.", "ansage" },
+    { L"Radar", L"Fenster mit den nächsten Fundorten, Pfeil und Entfernung.", "radar" },
   }
   for i, e in ipairs(liste) do
     local f = DbSchalter(s, e[1], e[2], e[3])
-    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 280, -20 - math.floor((i - 1) / 2) * 38)
+    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -20 - math.floor((i - 1) / 2) * 38)
   end
   local test = Knopf(s, L"Vorlesen testen", 150, function()
     if not FG:Sprechen(L"Hallo! So klingt Forever Gather.", true) then
@@ -496,19 +619,19 @@ bauen.einstellungen = function(s)
   }
   for i, e in ipairs(liste2) do
     local f = DbSchalter(s, e[1], e[2], e[3])
-    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 280, -190 - math.floor((i - 1) / 2) * 38)
+    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -190 - math.floor((i - 1) / 2) * 38)
   end
   local profil = Schalter(s, L"Eigene Einstellungen für diesen Charakter", L"Sonst gelten sie für alle Charaktere.",
     function() return FG.char.profil == "eigen" end,
     function(v) FG:ProfilWechseln(v and "eigen" or "konto") end)
   profil:SetPoint("TOPLEFT", 0, -306)
   local t3 = Text(s, "GameFontNormal", L"Sprache")
-  t3:SetPoint("TOPLEFT", 280, -310)
+  t3:SetPoint("TOPLEFT", 300, -310)
   for i, o in ipairs({ { "auto", L"Auto" }, { "de", "Deutsch" }, { "en", "English" } }) do
     local k = Karte(s, 74, 24, o[2], function() return FG.db.sprache == o[1] end, function()
       FG.db.sprache = o[1]; FG:SpracheAnwenden(); FG:Meldung(L"Sprache geändert. Ganz wirkt sie nach /reload.")
     end)
-    k:SetPoint("TOPLEFT", 340 + (i - 1) * 78, -304)
+    k:SetPoint("TOPLEFT", 370 + (i - 1) * 78, -304)
   end
 end
 
@@ -544,11 +667,11 @@ local function Bauen()
   local x = 12
   for _, r in ipairs(REITER) do
     local k = CreateFrame("Button", nil, fenster)
-    k:SetSize(88, 24)
+    k:SetSize(74, 24)
     k:SetPoint("TOPLEFT", x, -34)
-    x = x + 92
+    x = x + 77
     Hintergrund(k, 0.6)
-    k.text = Text(k, "GameFontNormal", r[2], 84)
+    k.text = Text(k, "GameFontNormalSmall", r[2], 72)
     k.text:SetJustifyH("CENTER")
     k.text:SetPoint("CENTER", 0, 0)
     k.linie = k:CreateTexture(nil, "BORDER")
@@ -643,6 +766,8 @@ function Fe:SitzungsAnzeigeAuffrischen()
     anzeige.oben:SetPoint("TOPLEFT", 6, -5)
     anzeige.unten = Text(anzeige, "GameFontHighlightSmall", "", 220)
     anzeige.unten:SetPoint("TOPLEFT", 6, -21)
+    anzeige.ziele = Text(anzeige, "GameFontHighlightSmall", "", 220)
+    anzeige.ziele:SetPoint("TOPLEFT", 6, -37)
     local p = FG.db.sitzungsPos
     if p then anzeige:SetPoint(p[1], UIParent, p[2], p[3], p[4]) else anzeige:SetPoint("TOP", 0, -120) end
     local zeit = 0
@@ -660,6 +785,9 @@ function Fe:SitzungsAnzeigeAuffrischen()
   local unten = L"%d Stück · %s pro Stunde":format(menge, FG:ZahlText(F:ProStunde(menge)))
   if FG.db.wert and s.wert > 0 then unten = unten .. " · " .. FG:GeldText(s.wert) end
   anzeige.unten:SetText(unten)
+  local ziele = FG.Extras:ZieleText()
+  anzeige.ziele:SetText(ziele ~= "" and (L"Ziele: %s":format(ziele)) or "")
+  anzeige:SetHeight(ziele ~= "" and 56 or 40)
   anzeige:Show()
 end
 
@@ -673,6 +801,7 @@ function Fe:Start()
   FG:Haken("routen", function() Fe:Auffrischen() end)
   FG:Haken("lager", function() Fe:Auffrischen() end)
   FG:Haken("fundorte", function() Fe:Auffrischen() end)
+  FG:Haken("ziele", function() Fe:Auffrischen(); Fe:SitzungsAnzeigeAuffrischen() end)
 end
 
 FG.tasten.fenster = function() Fe:Umschalten() end

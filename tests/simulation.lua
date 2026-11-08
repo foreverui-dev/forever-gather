@@ -79,7 +79,9 @@ local function Timer() local n = 0; while #timer > 0 and n < 500 do n = n + 1; t
 C_AddOns = { GetAddOnMetadata = function() return "@project-version@" end }
 local jetzt = 1000
 GetTime = function() return jetzt end
-date, time = os.date, os.time
+local uhrVersatz = 0
+date = os.date
+time = function() return os.time() + uhrVersatz end
 hooksecurefunc = function() end
 GetLocale = function() return "deDE" end
 GetRealmName = function() return "Forever" end
@@ -90,6 +92,16 @@ IsInGroup = function() return true end
 IsInRaid = function() return false end
 IsInGuild = function() return true end
 IsShiftKeyDown = function() return false end
+local strg = false
+IsControlKeyDown = function() return strg end
+local imKampf = false
+UnitAffectingCombat = function() return imKampf end
+local alarme, chatGesendet, karteGeoeffnet = {}, {}, nil
+RaidNotice_AddMessage = function(_, t) alarme[#alarme + 1] = t end
+RaidWarningFrame = {}
+PlaySound = function() end
+SendChatMessage = function(t, k) chatGesendet[#chatGesendet + 1] = k .. ":" .. t end
+OpenWorldMap = function(k) karteGeoeffnet = k end
 Ambiguate = function(n) return (n:match("^[^-]+")) end
 GetBuildInfo = function() return "1.60.1", "70399", "Nov 1 2026", 16001 end
 RAID_CLASS_COLORS = { DRUID = { r = 1, g = 0.49, b = 0.04 } }
@@ -111,7 +123,8 @@ C_Map = {
   GetPlayerMapPosition = function() return CreateVector2D(spieler.x, spieler.y) end,
   GetMapWorldSize = function(k) if k == KARTE then return 5000, 3000 end end,
   GetWorldPosFromMapPos = function(k, v) return 1, CreateVector2D(-v.y * 3000, -v.x * 5000) end,
-  GetMapInfo = function(k) return { name = k == KARTE and "Durotar" or "Brachland" } end,
+  GetMapInfo = function(k) return { name = (k == KARTE and "Durotar") or (k == 12 and "Kalimdor") or "Brachland", mapType = k == 12 and 2 or 3 } end,
+  GetMapRectOnMap = function(k, eltern) if eltern == 12 and k == KARTE then return 0.5, 0.6, 0.4, 0.5 end end,
   CanSetUserWaypointOnMap = function() return true end,
   SetUserWaypoint = function(p) wegpunkt = p end,
   ClearUserWaypoint = function() wegpunkt = nil end,
@@ -269,6 +282,9 @@ local x, y = M:Versatz(100, 0, 200, false)
 pruefe(math.abs(x - 35) < 0.01 and math.abs(y) < 0.01, "Osten liegt rechts")
 x, y = M:Versatz(0, -100, 200, false)
 pruefe(math.abs(y - 35) < 0.01, "Norden liegt oben")
+pruefe(F:Abgeerntet(F:Liste(KARTE)[1]), "frisch geerntet gilt als leer")
+uhrVersatz = uhrVersatz + 600
+pruefe(not F:Abgeerntet(F:Liste(KARTE)[1]), "nach 10 Minuten nachgewachsen")
 FG.db.ansage = true; FG.db.vorlesen = true
 local vorherGesprochen = #gesprochen
 M.Takt()
@@ -423,17 +439,127 @@ GameTooltip.skripte.OnShow(GameTooltip)
 pruefe(GameTooltip.zeilen[1] and GameTooltip.zeilen[1]:find("zu niedrig"), "Fertigkeit im Tooltip eines Vorkommens: " .. tostring(GameTooltip.zeilen[1]))
 
 ---------------------------------------------------------------------------
+print("-- Geschützte Werte")
+local GEHEIM = setmetatable({}, { __eq = function() error("geheim") end })
+issecretvalue = function(v) return v == nil and false or rawequal(v, GEHEIM) end
+pruefe(FG.Geheim(GEHEIM) and FG.Frei(GEHEIM) == nil and FG.Frei("x") == "x", "geheime Werte erkannt")
+GameTooltipTextLeft1.text = GEHEIM
+GameTooltip.zeilen = {}
+GameTooltip.skripte.OnShow(GameTooltip)
+pruefe(#GameTooltip.zeilen == 0, "geheimer Tooltip-Text wird übersprungen")
+pruefe(F:TypNachName(GEHEIM) == nil, "geheimer Name ist kein Schlüssel")
+Gehe(0.3, 0.7)
+Sammeln(2575, GEHEIM, nil, { { 2771, 2 } })
+local letzter = F:Liste(KARTE)[#F:Liste(KARTE)]
+pruefe(letzter.t == "o1732" and math.abs(letzter.x - 0.3) < 0.001, "geheimer Zielname: Zinnader über das Material erkannt")
+local fl0 = ForeverGatherDB.fehler
+pruefe(not fl0 or #fl0 == 0, "keine Fehler durch geheime Werte" .. (fl0 and fl0[1] and (": " .. fl0[1]) or ""))
+issecretvalue = nil
+
+print("-- Fertigkeitspunkte und Filter")
+pruefe(F:Farbstufe("o1620") == "orange" and F:Farbstufe("o1619") == "gelb" and F:Farbstufe("o1618") == "gruen", "orange, gelb, grün bei Fertigkeit 60")
+pruefe(F:Farbstufe("o1618", 150) == "grau" and F:Farbstufe("o1621") == "rot", "grau und zu niedrig")
+berufe[1][2] = 150
+Ereignis("SKILL_LINES_CHANGED")
+FG.db.nurSkillpunkte = true
+pruefe(not F:Sichtbar("o1618") and F:Sichtbar("o1621"), "nur Vorkommen mit Fertigkeitspunkten")
+FG.db.nurSkillpunkte = false
+berufe[1][2] = 60
+Ereignis("SKILL_LINES_CHANGED")
+
+print("-- Favoriten, Aufräumen, Merken")
+local fav = F:Liste(KARTE)[1]
+strg = true
+W:FundKlick(KARTE, fav, "LeftButton")
+strg = false
+pruefe(fav.fav, "Strg+Klick macht einen Favoriten")
+FG.db.ausgeblendet[fav.t] = true
+pruefe(F:FundSichtbar(fav) and not F:Sichtbar(fav.t), "Favorit bleibt sichtbar, auch wenn die Sorte aus ist")
+FG.db.ausgeblendet[fav.t] = nil
+local vorAuf = F:Anzahl()
+F:Hinzufuegen(KARTE, 0.81, 0.81, "o1617", "Freund", nil, time() - 200 * 86400)
+local vorbild = F:Liste(KARTE)[2]
+local dop = { x = vorbild.x + 0.0005, y = vorbild.y, t = vorbild.t, n = 0, z = time(), q = "Freund2" }
+table.insert(FG.root.fundorte[KARTE], dop)
+FG.Extras:Aufraeumen(90)
+pruefe(F:Anzahl() == vorAuf, "Aufräumen: doppelt und alt entfernt (" .. F:Anzahl() .. ")")
+GameTooltipTextLeft1:SetText("Wilddornrose")
+GameTooltip.skripte.OnShow(GameTooltip)
+GameTooltip.skripte.OnHide(GameTooltip)
+Gehe(0.9, 0.9)
+FG.Extras:Merken()
+local gemerkt = F:Liste(KARTE)[#F:Liste(KARTE)]
+pruefe(gemerkt.t == "o1621" and gemerkt.x == 0.9 and gemerkt.n == 0, "Vorkommen unter der Maus gemerkt")
+
+print("-- Sammelziele")
+SlashCmdList.FOREVERGATHER("ziel 40 friedensblume")
+pruefe(FG.char.ziele[2447] == 40 and F:IstZiel("o1618"), "Ziel gesetzt: 40 Friedensblumen")
+taschen[0][1][2] = 45
+Ereignis("BAG_UPDATE_DELAYED")
+pruefe(alarme[#alarme] and alarme[#alarme]:find("Ziel erreicht"), "Ziel erreicht gemeldet")
+pruefe(not F:IstZiel("o1618"), "erreichtes Ziel nicht mehr hervorgehoben")
+FG.Extras:ZielSetzen(2447, 0)
+pruefe(not FG.char.ziele[2447], "Ziel entfernt")
+FG.Extras:ZielSetzen(2770, 100)
+
+print("-- Seltenes")
+berufe[2][2] = 160
+Ereignis("SKILL_LINES_CHANGED")
+Gehe(0.2, 0.2)
+F:Hinzufuegen(KARTE, 0.205, 0.2, "o1733", "Freund")
+local a0 = #alarme
+M.Takt()
+pruefe(#alarme == a0 + 1 and alarme[#alarme]:find("Silberader"), "Alarm bei Silberader in der Nähe")
+Ereignis("CHAT_MSG_ADDON", "FGather", "F~1411~o1734~e~" .. T.Koord(0.25) .. T.Koord(0.25), "PARTY", "Kumpel-Forever")
+pruefe(#alarme == a0 + 2 and alarme[#alarme]:find("Kumpel hat Goldader"), "Alarm bei geteiltem seltenem Fund")
+imKampf = true
+M.Takt()
+pruefe(M.anzahl == 0, "im Kampf keine Symbole auf der Minikarte")
+imKampf = false
+
+print("-- Radar, Statistik, Kontinent, Berufe, Bericht")
+FG.Radar:Umschalten()
+pruefe(ForeverGatherRadar and ForeverGatherRadar:IsShown() and #FG.Radar.liste >= 1, "Radar zeigt die nächsten Fundorte")
+pruefe(FG.Radar.liste[1].m <= (FG.Radar.liste[2] and FG.Radar.liste[2].m or math.huge), "Radar nach Entfernung sortiert")
+FG.Radar:Umschalten()
+local heute = FG.root.tage[os.date("%Y-%m-%d")]
+pruefe(heute and heute.funde >= 5 and heute.stueck >= 5, "Tagesstatistik gezählt")
+pruefe(FG.root.besteSitzung and FG.root.besteSitzung.funde >= 1, "beste Sitzung gemerkt")
+local zonen = FG.Statistik:Zonen()
+pruefe(zonen[1] and zonen[1].name == "Durotar" and zonen[1].punkte > 0, "beste Gegend: Durotar")
+FG.Statistik:KarteOeffnen(KARTE)
+pruefe(karteGeoeffnet == KARTE, "Gegend auf der Karte öffnen")
+kartenId = 12
+W.waechter.skripte.OnUpdate(W.waechter, 0.2)
+pruefe(W.anzahl > 0, "Fundorte auf der Kontinentkarte: " .. tostring(W.anzahl))
+kartenId = KARTE
+FG.root.charaktere["Twink-Forever"].berufe = { erz = 200 }
+local andere = FG.Extras:AndereKoennen("o2040")
+pruefe(andere[1] == "Twink (200)", "Twink kann Mithril abbauen")
+FG.Extras:Bericht("gilde")
+pruefe(chatGesendet[#chatGesendet] and chatGesendet[#chatGesendet]:match("^GUILD:Forever Gather"), "Bericht in den Gildenchat")
+
+print("-- Runden")
+local rr = R:AusFundorten(KARTE, "kraut")
+R:Starten(rr)
+local npkt = #rr.punkte / 2
+for _ = 1, npkt do R:Weiter() end
+pruefe(rr.runden == 1 and rr.bestzeit, "Runde gezählt")
+pruefe(R:DauerText(rr):find("zu Fuß"), "Dauer geschätzt: " .. R:DauerText(rr))
+R:Anhalten()
+
+---------------------------------------------------------------------------
 print("-- Befehle, Tasten, Fenster")
 local befehle = { "", "", "hilfe", "einstellungen", "naechster", "zeigen", "zeigen", "vorlesen", "sitzung", "lager", "lager kupfer",
   "route neu", "route", "route weiter", "route stopp", "route kraut", "aufnahme", "aufnahme", "teilen", "teilen route gilde",
-  "import", "import kaputt", "diagnose", "fehler", "sprache", "sprache de", "unsinn", "sitzung neu" }
+  "import", "import kaputt", "radar", "radar", "ziel", "berufe", "statistik", "bericht", "merken", "aufraeumen", "diagnose", "fehler", "sprache", "sprache de", "unsinn", "sitzung neu" }
 for _, b in ipairs(befehle) do SlashCmdList.FOREVERGATHER(b) end
 Timer()
 pruefe(FG.root.diagnose and FG.root.diagnose.karte == true and #FG.root.diagnose.zauber >= 3, "Diagnose gespeichert")
 pruefe(FG.sitzung.funde == 0, "Sitzung zurückgesetzt")
-for _, t in ipairs({ "fenster", "fenster", "anzeige", "anzeige", "naechster", "route", "weiter", "route", "aufnahme", "aufnahme", "vorlesen", "sitzung", "sitzung", "einstellungen" }) do FG:Taste(t) end
+for _, t in ipairs({ "fenster", "fenster", "anzeige", "anzeige", "naechster", "route", "weiter", "route", "aufnahme", "aufnahme", "vorlesen", "sitzung", "sitzung", "radar", "radar", "merken", "einstellungen" }) do FG:Taste(t) end
 local Fe = FG.Fenster
-for _, s in ipairs({ "start", "karte", "routen", "lager", "teilen", "einstellungen" }) do Fe:Oeffnen(s) end
+for _, s in ipairs({ "start", "karte", "routen", "lager", "statistik", "teilen", "hilfen", "einstellungen" }) do Fe:Oeffnen(s) end
 pruefe(ForeverGatherFenster:IsShown(), "alle Reiter geöffnet")
 -- Listen bedienen
 Fe:Oeffnen("karte")

@@ -26,4 +26,10 @@
   <Binding name="FOREVERGATHER_EINSTELLUNGEN" category="ADDONS">
     ForeverGather:Taste("einstellungen")
   </Binding>
+  <Binding name="FOREVERGATHER_RADAR" category="ADDONS">
+    ForeverGather:Taste("radar")
+  </Binding>
+  <Binding name="FOREVERGATHER_MERKEN" category="ADDONS">
+    ForeverGather:Taste("merken")
+  </Binding>
 </Bindings>

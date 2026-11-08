@@ -57,6 +57,17 @@ function R:Laenge(r)
   return summe
 end
 
+-- Geschätzte Dauer einer Runde: zu Fuß (7 m/s) und reitend (11,2 m/s).
+function R:Dauer(r)
+  local m = self:Laenge(r)
+  return m / 7, m / 11.2
+end
+
+function R:DauerText(r)
+  local fuss, reiten = self:Dauer(r)
+  return L"ca. %s zu Fuß, %s reitend":format(FG:ZeitText(fuss), FG:ZeitText(reiten))
+end
+
 ---------------------------------------------------------------------------
 -- Route aus Fundorten: kürzester Rundweg (nächster Nachbar, dann 2-opt).
 ---------------------------------------------------------------------------
@@ -104,7 +115,7 @@ end
 function R:AusFundorten(karte, art, name)
   local punkte = {}
   for _, f in ipairs(F:Liste(karte)) do
-    if F:Sichtbar(f.t) and (not art or F:Art(f.t) == art) then punkte[#punkte + 1] = { f.x, f.y } end
+    if F:FundSichtbar(f) and (not art or F:Art(f.t) == art) then punkte[#punkte + 1] = { f.x, f.y } end
   end
   if #punkte < 3 then return nil, L"Für eine Route braucht es mindestens drei sichtbare Fundorte in dieser Gegend." end
   local weg = self:Rundweg(karte, punkte)
@@ -181,12 +192,13 @@ function R:Starten(r)
     end
   end
   PunktSetzen(r, start)
+  self.runde = { start = GetTime(), stueck = 0, besucht = 0 }
   FG:Ansage(L"Route „%s“ gestartet: Punkt %d von %d.", r.name, start, #r.punkte / 2)
 end
 
 function R:Anhalten(still)
   if not self.aktiv then return end
-  self.aktiv, self.index = nil, nil
+  self.aktiv, self.index, self.runde = nil, nil, nil
   P:WegpunktLoeschen()
   if not still then FG:Ansage(L"Route angehalten.") end
   FG:Rufe("routen")
@@ -200,6 +212,22 @@ function R:Weiter(rueckwaerts)
   if i > n then i = 1 elseif i < 1 then i = n end
   PunktSetzen(r, i)
   FG:Sprechen(L"Punkt %d von %d":format(i, n))
+  -- Runde geschafft, wenn alle Punkte einmal dran waren
+  local rd = self.runde
+  if rd and not rueckwaerts then
+    rd.besucht = rd.besucht + 1
+    if rd.besucht >= n then
+      local dauer = GetTime() - rd.start
+      r.runden = (r.runden or 0) + 1
+      if not r.bestzeit or dauer < r.bestzeit then r.bestzeit = dauer end
+      r.ertrag = rd.stueck
+      r.ertragGesamt = (r.ertragGesamt or 0) + rd.stueck
+      if FG.db.rundenAnsage then
+        FG:Ansage(L"Runde %d geschafft: %s, %d Stück.", r.runden, FG:ZeitText(dauer), rd.stueck)
+      end
+      self.runde = { start = GetTime(), stueck = 0, besucht = 0 }
+    end
+  end
 end
 
 function R:Umkehren(r)
@@ -222,6 +250,10 @@ function R:Takt()
 end
 
 function R:Start()
+  FG:Haken("gesammelt", function(_, beute)
+    if not (R.aktiv and R.runde) then return end
+    for _, b in ipairs(beute or {}) do R.runde.stueck = R.runde.stueck + (b.menge or 1) end
+  end)
   local rahmen = CreateFrame("Frame", nil, UIParent)
   local zeit = 0
   rahmen:SetScript("OnUpdate", function(_, dt)

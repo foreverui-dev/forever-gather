@@ -52,6 +52,20 @@ function W:FundTooltip(besitzer, karte, f)
   else
     GameTooltip:AddLine(artName, 0.8, 0.8, 0.8)
   end
+  local stufeArt = F.Farbstufe and F:Farbstufe(f.t)
+  if stufeArt and stufeArt ~= "rot" then
+    local r, g, b2, wort = FG:StufenFarbe(stufeArt)
+    GameTooltip:AddLine(wort, r, g, b2)
+  end
+  if F:Selten(f.t) then GameTooltip:AddLine(L"Seltenes Vorkommen", 1, 0.82, 0) end
+  if f.fav then GameTooltip:AddLine(L"Favorit", 1, 0.82, 0) end
+  if F:IstZiel(f.t) then GameTooltip:AddLine(L"Für dein Sammelziel", 1, 0.82, 0) end
+  local rest = F:Abgeerntet(f)
+  if rest then GameTooltip:AddLine(L"Abgeerntet, wächst in etwa %d Min. nach":format(math.ceil(rest / 60)), 0.7, 0.7, 0.7) end
+  if FG.Extras then
+    local andere = FG.Extras:AndereKoennen(f.t)
+    if #andere > 0 then GameTooltip:AddLine(L"Auch für: %s":format(table.concat(andere, ", ")), 0.7, 0.85, 1, true) end
+  end
   if f.n and f.n > 0 then GameTooltip:AddLine(L"%d-mal gesammelt, zuletzt %s":format(f.n, FG:AlterText(f.z)), 0.8, 0.8, 0.8) end
   if f.q then GameTooltip:AddLine(L"Geteilt von %s":format(f.q), 0.6, 0.75, 1) end
   local pk, px, py = P:Spieler()
@@ -63,10 +77,15 @@ function W:FundTooltip(besitzer, karte, f)
   GameTooltip:AddLine(L"Klick: Wegpunkt setzen", 0.6, 0.6, 0.6)
   GameTooltip:AddLine(L"Rechtsklick: Fundort löschen", 0.6, 0.6, 0.6)
   GameTooltip:AddLine(L"Umschalt+Rechtsklick: diese Sorte ausblenden", 0.6, 0.6, 0.6)
+  GameTooltip:AddLine(L"Strg+Klick: Favorit", 0.6, 0.6, 0.6)
   GameTooltip:Show()
 end
 
 function W:FundKlick(karte, f, taste)
+  if taste ~= "RightButton" and IsControlKeyDown and IsControlKeyDown() then
+    FG.Extras:Favorit(karte, f)
+    return
+  end
   if taste == "RightButton" then
     if IsShiftKeyDown() then
       FG.db.ausgeblendet[f.t] = true
@@ -117,15 +136,20 @@ W.NeuerPin = NeuerPin
 
 -- Gemeinsames Aussehen für Welt- und Minikarte. Status liegt nie nur in der Farbe:
 -- nicht abbaubare Vorkommen sind zusätzlich entsättigt und halb durchsichtig.
+-- Seltene, Favoriten und Vorkommen für offene Sammelziele sind größer und gold umrandet;
+-- abgeerntete Fundorte sind blass, bis sie vermutlich nachgewachsen sind.
 function W:PinGestalten(p, f, groesse)
   local art = F:Art(f.t)
   local c = FG:ArtFarbe(art)
+  local wichtig = f.fav or (FG.db.seltenHervorheben and F:Selten(f.t)) or (FG.db.zieleHervorheben and F:IstZiel(f.t))
+  if wichtig then groesse = groesse * 1.3; c = FG.farben.gold end
   p:SetSize(groesse, groesse)
   p.icon:SetTexture(F:Symbol(f.t))
   p.rand:SetColorTexture(c[1], c[2], c[3], FG.db.kontrast and 1 or 0.85)
   local geht = F:Abbaubar(f.t) ~= false
-  if p.icon.SetDesaturated then p.icon:SetDesaturated(not geht) end
-  p:SetAlpha(geht and 1 or 0.55)
+  local leer = F:Abgeerntet(f)
+  if p.icon.SetDesaturated then p.icon:SetDesaturated(not geht or leer and true or false) end
+  p:SetAlpha((leer and 0.35) or (geht and 1) or 0.55)
 end
 
 local function Zeichnen()
@@ -139,7 +163,7 @@ local function Zeichnen()
   if FG.db.weltkarte and karte then
     local groesse = (FG.db.pinGroesse or 16) * FG:Groesse() / skala
     for _, f in ipairs(F:Liste(karte)) do
-      if F:Sichtbar(f.t) then
+      if F:FundSichtbar(f) then
         n = n + 1
         local p = NeuerPin(lw, n, pins)
         W:PinGestalten(p, f, groesse)
@@ -149,6 +173,32 @@ local function Zeichnen()
         p:SetScript("OnLeave", function() GameTooltip:Hide() end)
         p:SetScript("OnClick", function(_, taste) W:FundKlick(karte, f, taste) end)
         p:Show()
+      end
+    end
+  end
+  -- Kontinentkarte: Fundorte aller Zonen darauf, kleiner
+  if FG.db.weltkarte and FG.db.kontinent and karte and n == 0 and C_Map and C_Map.GetMapRectOnMap then
+    local info = C_Map.GetMapInfo and C_Map.GetMapInfo(karte)
+    local kontinent = Enum and Enum.UIMapType and Enum.UIMapType.Continent or 2
+    if info and info.mapType == kontinent then
+      local groesse = (FG.db.pinGroesse or 16) * 0.6 * FG:Groesse() / skala
+      for zone, liste in pairs(FG.root.fundorte) do
+        local ok, x1, x2, y1, y2 = pcall(C_Map.GetMapRectOnMap, zone, karte)
+        if ok and x1 and x2 and y1 and y2 and x2 > x1 then
+          for _, f in ipairs(liste) do
+            if F:FundSichtbar(f) then
+              n = n + 1
+              local p = NeuerPin(lw, n, pins)
+              W:PinGestalten(p, f, groesse)
+              p:ClearAllPoints()
+              p:SetPoint("CENTER", lw, "TOPLEFT", (x1 + f.x * (x2 - x1)) * b, -(y1 + f.y * (y2 - y1)) * h)
+              p:SetScript("OnEnter", function(self) W:FundTooltip(self, zone, f) end)
+              p:SetScript("OnLeave", function() GameTooltip:Hide() end)
+              p:SetScript("OnClick", function(_, taste) W:FundKlick(zone, f, taste) end)
+              p:Show()
+            end
+          end
+        end
       end
     end
   end

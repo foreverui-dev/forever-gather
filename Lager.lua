@@ -52,9 +52,13 @@ function La:Eigener()
   local key = FG:CharKey()
   local c = FG.root.charaktere[key]
   if not c then
-    local _, klasse = UnitClass("player")
-    c = { klasse = klasse, fraktion = UnitFactionGroup and UnitFactionGroup("player") or nil, taschen = {}, bank = {} }
+    c = { taschen = {}, bank = {} }
     FG.root.charaktere[key] = c
+  end
+  if not c.klasse then
+    local _, klasse = UnitClass("player")
+    c.klasse = klasse
+    c.fraktion = UnitFactionGroup and UnitFactionGroup("player") or nil
   end
   return c, key
 end
@@ -148,8 +152,9 @@ end
 function La:TooltipVorkommen(tt)
   if not FG.db.vorkommenTooltip then return end
   local zeile = _G[(tt.GetName and tt:GetName() or "GameTooltip") .. "TextLeft1"]
-  local name = zeile and zeile:GetText()
-  if not name or (tt.GetUnit and tt:GetUnit()) then return end
+  local name = zeile and FG.Frei(zeile:GetText())
+  if type(name) ~= "string" or name == "" then return end
+  if tt.GetUnit and FG.Frei((tt:GetUnit())) then return end
   local typ = F:TypNachName(name)
   if not typ then return end
   local stufe = F:Stufe(typ)
@@ -157,6 +162,7 @@ function La:TooltipVorkommen(tt)
   local hat = F:Fertigkeit(art)
   if not stufe or art == "schatz" then return end
   if tt.fgZeile == name then return end
+  F.letzterTooltip = { typ = typ, zeit = GetTime() }
   tt.fgZeile = name
   local ok = hat and hat >= stufe
   local c = ok and FG.farben.gruen or FG.farben.rot
@@ -171,10 +177,11 @@ function La:TooltipVorkommen(tt)
 end
 
 local function ItemAusTooltip(tt, daten)
-  if daten and daten.id then return daten.id end
+  if daten and FG.Frei(daten.id) then return daten.id end
   if tt.GetItem then
     local _, link = tt:GetItem()
-    return link and tonumber(link:match("item:(%d+)"))
+    link = FG.Frei(link)
+    return type(link) == "string" and tonumber(link:match("item:(%d+)")) or nil
   end
 end
 

@@ -73,3 +73,13 @@ FG.ARTEN = {
   schatz = { symbol = 132594, farbe = { 0.95, 0.85, 0.35 }, farbenblind = { 0.95, 0.95, 0.95 } },
 }
 FG.ARTEN_REIHE = { "kraut", "erz", "schatz" }
+
+-- Seltene Vorkommen: größer auf der Karte, Alarm in der Nähe
+FG.SELTEN = {
+  o176589 = true, -- Schwarzer Lotus
+  o1733 = true,   -- Silberader
+  o1734 = true,   -- Goldader
+  o2047 = true,   -- Echtsilberablagerung
+  o165658 = true, -- Dunkeleisenablagerung
+  o175404 = true, -- Reiche Thoriumader
+}

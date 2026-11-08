@@ -16,10 +16,13 @@ Daten\Materialien.lua
 Core.lua
 Position.lua
 Fundorte.lua
+Extras.lua
 Weltkarte.lua
 Minikarte.lua
 Lager.lua
+Statistik.lua
 Routen.lua
 Teilen.lua
 Fenster.lua
+Radar.lua
 MinimapKnopf.lua

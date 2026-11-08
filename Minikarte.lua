@@ -45,14 +45,16 @@ end
 local function Takt()
   local karte, px, py = P:Spieler()
   local n = 0
-  if karte and FG.db.minikarte and P:Groesse(karte) then
+  local kampf = FG.db.kampfAusblenden and UnitAffectingCombat and UnitAffectingCombat("player")
+  if karte and P:Groesse(karte) then
     local radius = M:Radius()
+    local zeigen = FG.db.minikarte and not kampf
     local groesse = (FG.db.minikartePinGroesse or 13) * FG:Groesse()
     for _, f in ipairs(F:Liste(karte)) do
-      if F:Sichtbar(f.t) then
+      if F:FundSichtbar(f) then
         local o, s = P:Versatz(karte, px, py, f.x, f.y)
         local x, y, amRand = M:Versatz(o, s, radius, FG.db.minikarteRand)
-        if x then
+        if x and zeigen then
           n = n + 1
           local p = W.NeuerPin(Minimap, n, pins)
           W:PinGestalten(p, f, amRand and groesse * 0.7 or groesse)
@@ -64,17 +66,23 @@ local function Takt()
           p:SetScript("OnClick", function(_, taste) W:FundKlick(karte, f, taste) end)
           p:Show()
         end
-        -- Ansage, wenn ein Fundort in Reichweite kommt
-        if FG.db.ansage then
+        -- Ansage, Klang und Alarm, wenn ein Fundort in Reichweite kommt
+        local selten = FG.db.seltenAlarm and F:Selten(f.t)
+        if FG.db.ansage or FG.db.klang or selten then
           local m = math.sqrt(o * o + s * s)
-          if m <= (FG.db.ansageEntfernung or 40) then
-            if not angesagt[f] and F:Abbaubar(f.t) ~= false then
+          local weite = (FG.db.ansageEntfernung or 40) * (selten and 2 or 1)
+          if m <= weite then
+            if not angesagt[f] and F:Abbaubar(f.t) ~= false and not F:Abgeerntet(f) then
               angesagt[f] = true
               local text = P:Beschreibung(F:Name(f.t), karte, f.x, f.y, px, py)
-              FG:Meldung(text)
-              FG:Sprechen(text, true)
+              if selten then
+                FG.Extras:Alarm(L"Seltenes Vorkommen in der Nähe: %s":format(text))
+              else
+                if FG.db.ansage then FG:Meldung(text); FG:Sprechen(text, true) end
+                if FG.db.klang then FG.Extras:Klang() end
+              end
             end
-          elseif angesagt[f] and m > (FG.db.ansageEntfernung or 40) * 1.5 then
+          elseif angesagt[f] and m > weite * 1.5 then
             angesagt[f] = nil
           end
         end

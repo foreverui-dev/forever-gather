@@ -49,13 +49,14 @@ end
 -- Karte und Koordinaten des Spielers (nil in Instanzen ohne Karte).
 function P:Spieler()
   if not (C_Map and C_Map.GetBestMapForUnit) then return end
-  local karte = C_Map.GetBestMapForUnit("player")
+  local karte = FG.Frei(C_Map.GetBestMapForUnit("player"))
   if not karte then return end
   local pos = C_Map.GetPlayerMapPosition(karte, "player")
   if not pos then return end
   local x, y
   if pos.GetXY then x, y = pos:GetXY() else x, y = pos.x, pos.y end
-  if not x or (x == 0 and y == 0) then return end
+  x, y = FG.Frei(x), FG.Frei(y)
+  if not x or not y or (x == 0 and y == 0) then return end
   return karte, x, y
 end
 
@@ -73,12 +74,16 @@ function P:Entfernung(karte, x1, y1, x2, y2)
 end
 
 -- Richtung als Uhrzeit (12 = geradeaus) aus Sicht des Spielers.
-function P:Uhr(osten, sueden)
+-- Winkel zum Ziel im Uhrzeigersinn ab Blickrichtung (0 = geradeaus), in Bogenmaß.
+function P:Winkel(osten, sueden)
   local norden = -sueden
   local kurs = math.atan2 and math.atan2(osten, norden) or atan2(osten, norden) -- im Uhrzeigersinn ab Norden
-  local blick = GetPlayerFacing and GetPlayerFacing() or 0                         -- gegen den Uhrzeigersinn
-  if not blick then blick = 0 end
-  local rel = (kurs + blick) % (2 * math.pi)
+  local blick = FG.Frei(GetPlayerFacing and GetPlayerFacing()) or 0             -- gegen den Uhrzeigersinn
+  return (kurs + blick) % (2 * math.pi)
+end
+
+function P:Uhr(osten, sueden)
+  local rel = self:Winkel(osten, sueden)
   local stunde = math.floor(rel / (2 * math.pi) * 12 + 0.5) % 12
   if stunde == 0 then stunde = 12 end
   return stunde
