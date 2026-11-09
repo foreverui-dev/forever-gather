@@ -34,10 +34,18 @@ Kräuter, Erze und Schätze auf Welt- und Minikarte für WoW Forever. Teil der F
 | `/fg vorlesen` | nahe Fundorte vorlesen |
 | `/fg diagnose` | technische Infos für Fehlerberichte |
 
-## Entwicklung
+## Erste Schritte
 
-- Test ohne Spiel: `lua5.1 tests/simulation.lua`
-- Materialliste neu erzeugen: `node scripts/daten.mjs ../foreverui-web`
-- Veröffentlichen: Tag `vX.Y.Z` pushen, der Release-Workflow baut das Paket.
+1. Addon installieren und einloggen. Einrichten musst du nichts.
+2. Losziehen und sammeln: Jeder Fundort erscheint ab jetzt auf Welt- und Minikarte.
+3. Mit `/fg` öffnest du das Fenster mit Übersicht, Karte, Routen, Lager, Statistik, Teilen, Hilfen und Einstellungen.
+
+Fundorte füllen sich durch dein eigenes Sammeln und durch Funde deiner Gruppe, Gilde und geteilte Codes.
+
+## Links
+
+- Webseite: [foreverui.de](https://foreverui.de/)
+- Fragen und Ideen: [Discord](https://discord.gg/KFPPhER4Y2)
+- Änderungen: siehe CHANGELOG.md
 
 Lizenz: MIT
