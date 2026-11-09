@@ -2,6 +2,7 @@
 
 ## 0.2.1
 
+- Richtige Einzahl in Texten: „1 Fundort“ statt „1 Fundorte“, „1 Charakter“ statt „1 Charakteren“, kein doppelter Punkt mehr hinter dem Datum.
 - Neuer Name in der Addonliste: Forever Harvest. Ordner, Befehl /fg und Einstellungen bleiben gleich.
 - Behebt die Meldung „Aktion blockiert, Blizzard vorbehalten“ (z. B. beim Schließen des Händlerfensters): Forever Harvest überschreibt die globale Tabelle der Bestätigungsfenster nicht mehr.
 

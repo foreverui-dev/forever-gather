@@ -172,7 +172,7 @@ function La:TooltipVorkommen(tt)
   else text = L"Braucht %d, du hast %d (zu niedrig)":format(stufe, hat) end
   tt:AddLine(text, c[1], c[2], c[3])
   local n = F:Anzahl(typ)
-  if n > 0 then tt:AddLine(L"%d bekannte Fundorte":format(n), 0.7, 0.7, 0.7) end
+  if n > 0 then tt:AddLine(FG.Einzahl(L"%d bekannte Fundorte":format(n)), 0.7, 0.7, 0.7) end
   tt:Show()
 end
 

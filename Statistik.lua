@@ -83,7 +83,7 @@ function St:Zonen()
 end
 
 function St:ZonenText(e)
-  return L"%d Kräuter, %d Erze, %d Schätze · %d bringen Punkte":format(e.kraut, e.erz, e.schatz, e.punkte)
+  return FG.Einzahl(L"%d Kräuter, %d Erze, %d Schätze · %d bringen Punkte":format(e.kraut, e.erz, e.schatz, e.punkte))
 end
 
 -- Weltkarte auf eine Gegend öffnen

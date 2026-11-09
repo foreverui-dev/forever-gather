@@ -16,6 +16,32 @@ Kräuter, Erze und Schätze auf Welt- und Minikarte für WoW Forever. Teil der F
 - **Seltenes:** Schwarzer Lotus, Silber, Gold und Co. hervorgehoben, Alarm in der Nähe oder wenn die Gruppe eins findet.
 - **Barrierefreiheit:** Vorlesen, nahe Fundorte mit Entfernung und Richtung ansagen, hoher Kontrast, Farbenblind-Modus, alles größer, weniger Bewegung, Tastenkürzel für alle Funktionen.
 
+## Bilder
+
+![Übersicht: deine Berufe, bekannte Fundorte und Schnellknöpfe](https://raw.githubusercontent.com/foreverui-dev/forever-gather/main/screenshots/fenster-uebersicht.png)
+*Übersicht: deine Berufe, bekannte Fundorte und Schnellknöpfe*
+
+![Karte: was angezeigt wird, mit allen Kräutern und Erzen samt Fertigkeitsstufe](https://raw.githubusercontent.com/foreverui-dev/forever-gather/main/screenshots/fenster-karte.png)
+*Karte: was angezeigt wird, mit allen Kräutern und Erzen samt Fertigkeitsstufe*
+
+![Lager: Materialien aller Charaktere mit Filter und Suche](https://raw.githubusercontent.com/foreverui-dev/forever-gather/main/screenshots/fenster-lager.png)
+*Lager: Materialien aller Charaktere mit Filter und Suche*
+
+![Routen: erstellen, abfahren und teilen](https://raw.githubusercontent.com/foreverui-dev/forever-gather/main/screenshots/fenster-routen.png)
+*Routen: erstellen, abfahren und teilen*
+
+![Statistik: die letzten Tage und die besten Gegenden](https://raw.githubusercontent.com/foreverui-dev/forever-gather/main/screenshots/fenster-statistik.png)
+*Statistik: die letzten Tage und die besten Gegenden*
+
+![Teilen: Codes und Funde mit Gruppe und Gilde](https://raw.githubusercontent.com/foreverui-dev/forever-gather/main/screenshots/fenster-teilen.png)
+*Teilen: Codes und Funde mit Gruppe und Gilde*
+
+![Hilfen: Radar, Alarme und Sammelziele](https://raw.githubusercontent.com/foreverui-dev/forever-gather/main/screenshots/fenster-hilfen.png)
+*Hilfen: Radar, Alarme und Sammelziele*
+
+![Einstellungen: Barrierefreiheit, Allgemeines und Sprache](https://raw.githubusercontent.com/foreverui-dev/forever-gather/main/screenshots/fenster-einstellungen.png)
+*Einstellungen: Barrierefreiheit, Allgemeines und Sprache*
+
 ## Befehle
 
 `/fg` öffnet das Fenster, `/fg hilfe` zeigt alle Befehle. Die wichtigsten:

@@ -180,8 +180,8 @@ bauen.start = function(s)
         teile[#teile + 1] = stufe and ("%s %d"):format(name, stufe) or (name .. " " .. L"nicht erlernt")
       end
       local karte = P:Spieler()
-      gruss:SetText(L"%s · %d Fundorte hier, %d insgesamt":format(table.concat(teile, " · "),
-        karte and #F:Liste(karte) or 0, F:Anzahl()))
+      gruss:SetText(FG.Einzahl(L"%s · %d Fundorte hier, %d insgesamt":format(table.concat(teile, " · "),
+        karte and #F:Liste(karte) or 0, F:Anzahl())))
     end
   end })
 
@@ -223,7 +223,7 @@ bauen.start = function(s)
     local st = FG.sitzung
     if st.funde == 0 then zeile:SetText(L"Noch nichts gesammelt in dieser Sitzung.")
     else
-      local t = L"%d Funde in %s":format(st.funde, FG:ZeitText(F:SitzungDauer()))
+      local t = FG.Einzahl(L"%d Funde in %s":format(st.funde, FG:ZeitText(F:SitzungDauer())))
       if FG.db.wert and st.wert > 0 then t = t .. " · " .. L"Wert %s":format(FG:GeldText(st.wert)) end
       zeile:SetText(t)
     end
@@ -293,7 +293,7 @@ bauen.karte = function(s)
       z.links:SetTextColor(1, 1, 1)
     end
     local aus = FG.db.ausgeblendet[typ]
-    z.rechts:SetText(L"%d Fundorte · %s":format(F:Anzahl(typ), aus and L"aus" or L"an"))
+    z.rechts:SetText(FG.Einzahl(L"%d Fundorte · %s":format(F:Anzahl(typ), aus and L"aus" or L"an")))
     z.icon:SetAlpha(aus and 0.35 or 1)
     if z.icon.SetDesaturated then z.icon:SetDesaturated(aus and true or false) end
   end, function(typ, taste)
@@ -344,7 +344,7 @@ bauen.routen = function(s)
     z.icon:SetTexture(r.art == "erz" and FG.ARTEN.erz.symbol or FG.ARTEN.kraut.symbol)
     local zeichen = R.aktiv == r and "» " or ""
     z.links:SetText(zeichen .. r.name .. (r.versteckt and (" (" .. L"versteckt" .. ")") or ""))
-    z.rechts:SetText(L"%s · %d Punkte · %s":format(P:KartenName(r.karte), #r.punkte / 2, P:MeterText(R:Laenge(r))))
+    z.rechts:SetText(FG.Einzahl(L"%s · %d Punkte · %s":format(P:KartenName(r.karte), #r.punkte / 2, P:MeterText(R:Laenge(r)))))
     local g = FG.farben.gold
     z.wahl:SetColorTexture(g[1], g[2], g[3], Fe.route == r and 0.18 or 0)
   end, function(r)
@@ -356,7 +356,7 @@ bauen.routen = function(s)
     if r.von then GameTooltip:AddLine(L"Von %s":format(r.von), 0.8, 0.8, 0.8) end
     GameTooltip:AddLine(R:DauerText(r), 0.8, 0.8, 0.8)
     if r.runden then
-      GameTooltip:AddLine(L"%d Runden, beste %s, zuletzt %d Stück":format(r.runden, FG:ZeitText(r.bestzeit or 0), r.ertrag or 0), 0.8, 0.8, 0.8)
+      GameTooltip:AddLine(FG.Einzahl(L"%d Runden, beste %s, zuletzt %d Stück":format(r.runden, FG:ZeitText(r.bestzeit or 0), r.ertrag or 0)), 0.8, 0.8, 0.8)
     end
     GameTooltip:AddLine(L"Klick: auswählen", 0.6, 0.6, 0.6)
     GameTooltip:Show()
@@ -420,7 +420,7 @@ bauen.lager = function(s)
     z.links:SetText(e.name)
     local _, liste = La:Bestand(e.item)
     local ziel = FG.char.ziele[e.item]
-    z.rechts:SetText(L"%d auf %d Charakteren":format(e.menge, #liste)
+    z.rechts:SetText(FG.Einzahl(L"%d auf %d Charakteren":format(e.menge, #liste))
       .. (ziel and (" · " .. L"Ziel %d/%d":format(math.min(FG.Extras:Stand(e.item), ziel), ziel)) or ""))
   end, function(e, taste)
     if taste == "RightButton" then FG.Extras:ZielFragen(e.item); return end
@@ -507,7 +507,7 @@ bauen.statistik = function(s)
     local summe = St:Gesamt()
     local b = FG.root.besteSitzung
     local t = L"Insgesamt %d Stück gesammelt.":format(summe)
-    if b then t = t .. " " .. L"Beste Sitzung: %d Funde am %s.":format(b.funde, St:TagText(b.datum)) end
+    if b then t = t .. " " .. FG.Einzahl(L"Beste Sitzung: %d Funde am %s":format(b.funde, St:TagText(b.datum))) end
     kopf:SetText(t)
   end })
   local t1 = Text(s, "GameFontNormal", L"Letzte Tage")
@@ -515,7 +515,7 @@ bauen.statistik = function(s)
   local tage = Liste(s, BREITE - 40, 5, 22, function() return St:Tage(14) end, function(z, e)
     z.icon:SetTexture(134939)
     z.links:SetText(St:TagText(e.tag))
-    local r = L"%d Funde · %d Stück":format(e.t.funde, e.t.stueck)
+    local r = FG.Einzahl(L"%d Funde · %d Stück":format(e.t.funde, e.t.stueck))
     if FG.db.wert and e.t.wert > 0 then r = r .. " · " .. FG:GeldText(e.t.wert) end
     z.rechts:SetText(r)
   end, function(e) FG:Sprechen(("%s: %d %s"):format(St:TagText(e.tag), e.t.stueck, L"Stück"), true) end)
@@ -532,7 +532,7 @@ bauen.statistik = function(s)
   end, function(z, e)
     GameTooltip:SetOwner(z, "ANCHOR_RIGHT")
     GameTooltip:AddLine(e.name)
-    GameTooltip:AddLine(L"%d Fundorte, %d davon kannst du abbauen.":format(e.gesamt, e.abbaubar), 0.8, 0.8, 0.8)
+    GameTooltip:AddLine(FG.Einzahl(L"%d Fundorte, %d davon kannst du abbauen.":format(e.gesamt, e.abbaubar)), 0.8, 0.8, 0.8)
     GameTooltip:AddLine(L"Klick: Karte öffnen", 0.6, 0.6, 0.6)
     GameTooltip:Show()
   end)
@@ -778,7 +778,7 @@ function Fe:SitzungsAnzeigeAuffrischen()
   anzeige:SetScale(FG:Groesse())
   anzeige.hg:SetColorTexture(0.06, 0.06, 0.08, FG:Deckkraft(0.7))
   local s = FG.sitzung
-  anzeige.oben:SetText(L"Forever Harvest · %s · %d Funde":format(FG:ZeitText(F:SitzungDauer()), s.funde))
+  anzeige.oben:SetText(FG.Einzahl(L"Forever Harvest · %s · %d Funde":format(FG:ZeitText(F:SitzungDauer()), s.funde)))
   local menge = 0
   for _, n in pairs(s.items) do menge = menge + n end
   local unten = L"%d Stück · %s pro Stunde":format(menge, FG:ZahlText(F:ProStunde(menge)))

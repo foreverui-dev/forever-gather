@@ -475,7 +475,7 @@ function F:SitzungText(schlicht)
   for _, item in ipairs(s.reihe) do
     teile[#teile + 1] = ("%d %s"):format(s.items[item], self:ItemName(item))
   end
-  local text = L"%d Funde in %s: %s.":format(s.funde, FG:ZeitText(self:SitzungDauer()), table.concat(teile, ", "))
+  local text = FG.Einzahl(L"%d Funde in %s: %s.":format(s.funde, FG:ZeitText(self:SitzungDauer()), table.concat(teile, ", ")))
   if FG.db.wert and s.wert > 0 then text = text .. " " .. L"Wert: %s.":format(FG:GeldText(s.wert, schlicht)) end
   return text
 end
@@ -523,7 +523,7 @@ function F:Umgebung()
     local f = liste[i].f
     teile[#teile + 1] = P:Beschreibung(self:Name(f.t), karte, f.x, f.y, px, py)
   end
-  return L"%d Fundorte in %s. Am nächsten: %s.":format(#liste, P:KartenName(karte), table.concat(teile, "; "))
+  return FG.Einzahl(L"%d Fundorte in %s. Am nächsten: %s.":format(#liste, P:KartenName(karte), table.concat(teile, "; ")))
 end
 
 FG:Befehl({ "vorlesen" }, function() FG:Meldung(F:Umgebung()); FG:Sprechen(F:Umgebung(), true) end,

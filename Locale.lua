@@ -11,6 +11,27 @@ function FG.L(text)
   return text
 end
 
+
+-- Einzahl: "1 Fundorte" wird zu "1 Fundort" (und im Englischen "1 nodes" zu "1 node").
+local EINZAHL = {
+  { "bekannte Fundorte", "bekannter Fundort" }, { "neue Fundorte", "neuer Fundort" },
+  { "Fundorten", "Fundort" }, { "Fundorte", "Fundort" }, { "Funde", "Fund" },
+  { "Charakteren", "Charakter" }, { "Punkte", "Punkt" }, { "Runden", "Runde" },
+  { "Tagen", "Tag" }, { "Karten", "Karte" }, { "Materialien", "Material" },
+  { "Kräuter", "Kraut" }, { "Erze", "Erz" }, { "Schätze", "Schatz" },
+  { "known nodes", "known node" }, { "new nodes", "new node" }, { "nodes", "node" },
+  { "finds", "find" }, { "characters", "character" }, { "points", "point" },
+  { "rounds", "round" }, { "days", "day" }, { "maps", "map" }, { "materials", "material" },
+  { "herbs", "herb" }, { "ores", "ore" }, { "treasures", "treasure" }, { "items", "item" },
+}
+function FG.Einzahl(text)
+  if type(text) ~= "string" or not text:find("1 ", 1, true) then return text end
+  for _, e in ipairs(EINZAHL) do
+    text = text:gsub("(%f[%w]1 )" .. e[1]:gsub("%s", "%%s") .. "%f[^%w\128-\255]", "%1" .. e[2])
+  end
+  return text
+end
+
 local E = FG.EN
 -- Englische Texte
 E["Gold"] = "gold"
@@ -279,7 +300,7 @@ E["Aufräumen"] = "Clean up"
 E["Bericht in den Chat"] = "Report to chat"
 E["Beste Gegend für dich: %s (%s)."] = "Best area for you: %s (%s)."
 E["Beste Gegenden für dich"] = "Best areas for you"
-E["Beste Sitzung: %d Funde am %s."] = "Best session: %d finds on %s."
+E["Beste Sitzung: %d Funde am %s"] = "Best session: %d finds on %s"
 E["Fahr zuerst mit der Maus über ein Vorkommen, dann noch einmal."] = "Hover over a node first, then try again."
 E["Favorit"] = "Favorite"
 E["Fenster mit den nächsten Fundorten, Pfeil und Entfernung."] = "Window with the nearest nodes, arrow and distance."

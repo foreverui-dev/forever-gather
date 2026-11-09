@@ -183,7 +183,7 @@ end
 function FG:Standardwerte(ziel) ergaenze(ziel, self.STANDARD) end
 
 function FG:Meldung(text, ...)
-  DEFAULT_CHAT_FRAME:AddMessage(FG.gold .. "Forever Harvest:|r " .. (select("#", ...) > 0 and text:format(...) or text))
+  DEFAULT_CHAT_FRAME:AddMessage(FG.gold .. "Forever Harvest:|r " .. FG.Einzahl(select("#", ...) > 0 and text:format(...) or text))
 end
 
 -- Meldung im Chat und, wenn eingeschaltet, vorlesen.
@@ -239,7 +239,7 @@ function FG:AlterText(zeitpunkt)
   local d = math.max(0, time() - zeitpunkt)
   if d < 3600 then return L"vor kurzem" end
   if d < 86400 then return L"vor %d Std.":format(math.floor(d / 3600)) end
-  return L"vor %d Tagen":format(math.floor(d / 86400))
+  return FG.Einzahl(L"vor %d Tagen":format(math.floor(d / 86400)))
 end
 
 function FG:CharKey()

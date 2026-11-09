@@ -597,6 +597,10 @@ for _, datei in ipairs(toc) do
 end
 pruefe(#fehlend == 0, "alle Texte haben eine englische Fassung" .. (fehlend[1] and (": " .. #fehlend .. " fehlen, z. B. " .. fehlend[1]) or ""))
 pruefe(#falsch == 0, "Platzhalter stimmen überein" .. (falsch[1] and (": " .. falsch[1]) or ""))
+pruefe(FG.Einzahl("1 auf 1 Charakteren") == "1 auf 1 Charakter", "Einzahl: 1 Charakter")
+pruefe(FG.Einzahl("1 Fundorte · 11 Fundorte") == "1 Fundort · 11 Fundorte", "Einzahl nur bei genau 1")
+pruefe(FG.Einzahl("1 Kräuter, 1 bekannte Fundorte") == "1 Kraut, 1 bekannter Fundort", "Einzahl mit Umlauten")
+pruefe(FG.Einzahl("1 nodes, 21 finds") == "1 node, 21 finds", "Einzahl Englisch")
 if os.getenv("FEHLENDE") then for _, t in ipairs(fehlend) do print(t) end end
 
 local fl = ForeverGatherDB.fehler
