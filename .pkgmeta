@@ -4,3 +4,4 @@ ignore:
   - tests
   - scripts
   - .github
+  - screenshots

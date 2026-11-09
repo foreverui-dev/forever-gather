@@ -9,6 +9,7 @@
 ## IconTexture: Interface\Icons\INV_Misc_Flower_02
 ## X-Website: https://foreverui.de/
 ## X-Category: Professions
+## X-Curse-Project-ID: 1793840
 
 Locale.lua
 Daten\Knoten.lua
