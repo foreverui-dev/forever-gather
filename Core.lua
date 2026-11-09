@@ -53,6 +53,11 @@ FG.STANDARD = {
   radar = false,            -- Radar-Fenster mit den nächsten Fundorten
   radarPos = nil,
   radarZeilen = 5,
+  -- 0.3
+  kartenfenster = false,     -- eigenes Fenster mit der Karte der Gegend
+  kartenfensterPos = nil,
+  kartenfensterGroesse = 200,
+  kartenfensterZoom = 250,  -- halbe Breite der Ansicht in Metern
   klang = false,            -- Klang, wenn ein Fundort in Reichweite kommt
   kampfAusblenden = true,   -- im Kampf keine Symbole auf der Minikarte
   seltenHervorheben = true, -- seltene Vorkommen größer
@@ -507,6 +512,7 @@ BINDING_NAME_FOREVERGATHER_SITZUNG = L"Sitzungsanzeige ein oder aus"
 BINDING_NAME_FOREVERGATHER_EINSTELLUNGEN = L"Einstellungen öffnen"
 BINDING_NAME_FOREVERGATHER_RADAR = L"Radar ein oder aus"
 BINDING_NAME_FOREVERGATHER_MERKEN = L"Vorkommen unter der Maus merken"
+BINDING_NAME_FOREVERGATHER_KARTENFENSTER = L"Kartenfenster ein oder aus"
 
 FG.tasten = {}
 function FG:Taste(was)

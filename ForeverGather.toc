@@ -26,4 +26,5 @@ Routen.lua
 Teilen.lua
 Fenster.lua
 Radar.lua
+Kartenfenster.lua
 MinimapKnopf.lua

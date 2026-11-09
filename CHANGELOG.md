@@ -1,5 +1,9 @@
 # Änderungen
 
+## 0.3.0
+
+- Neues Kartenfenster: eine kleine Karte der Gegend in einem eigenen, verschiebbaren Fenster. Sie zeigt deine Position mit Blickrichtung, alle Fundorte und Routen als Linien. Mit dem Mausrad zoomst du, ein Klick auf einen Fundort setzt einen Wegpunkt. Öffnen mit `/fg karte`, dem Knopf in der Übersicht oder einem Tastenkürzel. Liefert das Spiel kein Kartenbild, zeigt das Fenster Fundorte und Route ohne Bild.
+
 ## 0.2.1
 
 - Richtige Einzahl in Texten: „1 Fundort“ statt „1 Fundorte“, „1 Charakter“ statt „1 Charakteren“, kein doppelter Punkt mehr hinter dem Datum.

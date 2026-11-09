@@ -245,6 +245,8 @@ bauen.start = function(s)
   k7:SetPoint("TOPLEFT", 0, -340)
   local k8 = Knopf(s, L"Vorkommen merken", 170, function() FG.Extras:Merken() end)
   k8:SetPoint("LEFT", k7, "RIGHT", 10, 0)
+  local k9 = Knopf(s, L"Kartenfenster", 170, function() FG.Kartenfenster:Umschalten() end)
+  k9:SetPoint("LEFT", k8, "RIGHT", 10, 0)
   local tipp = Text(s, "GameFontDisableSmall", L"Tipp: Klick auf einen Fundort auf der Karte setzt einen Wegpunkt, Rechtsklick löscht ihn. "
     .. L"Alle Funktionen haben Tastenkürzel (Tastaturbelegung › AddOns).", BREITE - 40)
   tipp:SetPoint("TOPLEFT", 0, -372)

@@ -32,4 +32,7 @@
   <Binding name="FOREVERGATHER_MERKEN" category="ADDONS">
     ForeverGather:Taste("merken")
   </Binding>
+  <Binding name="FOREVERGATHER_KARTENFENSTER" category="ADDONS">
+    ForeverGather:Taste("kartenfenster")
+  </Binding>
 </Bindings>

@@ -128,6 +128,8 @@ C_Map = {
   CanSetUserWaypointOnMap = function() return true end,
   SetUserWaypoint = function(p) wegpunkt = p end,
   ClearUserWaypoint = function() wegpunkt = nil end,
+  GetMapArtLayers = function(k) if k == KARTE then return { { layerWidth = 1000, layerHeight = 512, tileWidth = 256, tileHeight = 256 } } end end,
+  GetMapArtLayerTextures = function(k) if k == KARTE then local t = {}; for i = 1, 8 do t[i] = 100 + i end; return t end end,
 }
 UiMapPoint = { CreateFromCoordinates = function(k, x, y) return { karte = k, x = x, y = y } end }
 C_SuperTrack = { SetSuperTrackedUserWaypoint = function() end }
@@ -518,6 +520,30 @@ pruefe(M.anzahl == 0, "im Kampf keine Symbole auf der Minikarte")
 imKampf = false
 
 print("-- Radar, Statistik, Kontinent, Berufe, Bericht")
+local KF = FG.Kartenfenster
+FG.befehle.karte("")
+pruefe(ForeverGatherKartenfenster and ForeverGatherKartenfenster:IsShown(), "Kartenfenster öffnet mit /fg karte")
+local kd = KF:Kacheln(KARTE)
+pruefe(#kd == 8 and math.abs(kd[4][4] - 1.024) < 0.001 and kd[5][3] == 0.5, "Kartenbild in Kacheln zerlegt")
+local kx, ky = KF:Punkt(KARTE, 0.5, 0.5, 0.52, 0.5, 200)
+pruefe(math.abs(kx - 40) < 0.01 and ky == 0, "100 m Abstand bei 250 m Zoom = 40 Bildpunkte")
+pruefe((KF.anzahl or 0) >= 1, "Kartenfenster zeigt Fundorte in der Nähe")
+local zv = FG.db.kartenfensterZoom
+KF:Zoomen(1)
+pruefe(FG.db.kartenfensterZoom < zv, "Mausrad zoomt hinein")
+for _ = 1, 40 do KF:Zoomen(1) end
+pruefe(FG.db.kartenfensterZoom >= 60, "Zoom hat eine Grenze")
+FG.db.kartenfensterZoom = 250
+local kspieler = spieler.karte
+spieler.karte = nil
+KF:Auffrischen()
+pruefe(ForeverGatherKartenfenster.name.text == "Keine Karte hier", "ohne Kartengröße: Hinweis statt Fehler")
+spieler.karte = kspieler
+C_Map.GetMapArtLayers = nil
+KF:Auffrischen()
+pruefe(#KF:Kacheln(KARTE) == 0, "ohne Kartenbild: Ansicht ohne Bild")
+FG.befehle.karte("")
+pruefe(not ForeverGatherKartenfenster:IsShown(), "Kartenfenster schließt wieder")
 FG.Radar:Umschalten()
 pruefe(ForeverGatherRadar and ForeverGatherRadar:IsShown() and #FG.Radar.liste >= 1, "Radar zeigt die nächsten Fundorte")
 pruefe(FG.Radar.liste[1].m <= (FG.Radar.liste[2] and FG.Radar.liste[2].m or math.huge), "Radar nach Entfernung sortiert")

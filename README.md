@@ -12,6 +12,7 @@ Kräuter, Erze und Schätze auf Welt- und Minikarte für WoW Forever. Teil der F
 - **Farmrouten:** Route aus allen Fundorten einer Gegend (kürzester Rundweg) oder eigene Runde aufnehmen. Beim Abfahren springt der Wegpunkt automatisch zum nächsten Punkt.
 - **Teilen:** Neue Funde gehen live an Gruppe oder Gilde. Routen und Fundorte als Code zum Kopieren (Discord, foreverui.de) oder direkt an Gruppe, Gilde oder einen Spieler.
 - **Sitzung:** Was du gesammelt hast, Stück pro Stunde und Wert (Händlerpreis oder Auktionspreis, wenn ein Preisaddon installiert ist).
+- **Kartenfenster:** kleine, frei verschiebbare Karte der Gegend mit deiner Position, allen Fundorten und der Route als Linie. Mausrad zoomt, Klick auf einen Fundort setzt einen Wegpunkt.
 - **Radar und Ziele:** Fenster mit den nächsten Fundorten samt Pfeil, Sammelziele mit Fortschritt, Fertigkeitspunkte in Spielfarben mit Wort, beste Gegenden für deinen Charakter, Statistik der letzten Tage.
 - **Seltenes:** Schwarzer Lotus, Silber, Gold und Co. hervorgehoben, Alarm in der Nähe oder wenn die Gruppe eins findet.
 - **Barrierefreiheit:** Vorlesen, nahe Fundorte mit Entfernung und Richtung ansagen, hoher Kontrast, Farbenblind-Modus, alles größer, weniger Bewegung, Tastenkürzel für alle Funktionen.
@@ -55,6 +56,7 @@ Kräuter, Erze und Schätze auf Welt- und Minikarte für WoW Forever. Teil der F
 | `/fg teilen [route] [gilde \| Name]` | Fundorte oder Route senden |
 | `/fg lager [Suche]` | Materialien aller Charaktere |
 | `/fg radar` | Radar ein oder aus |
+| `/fg karte [Größe]` | Kartenfenster ein oder aus |
 | `/fg ziel 40 Friedensblume` | Sammelziel setzen |
 | `/fg statistik` | Tage, Gesamtmengen, beste Gegend |
 | `/fg vorlesen` | nahe Fundorte vorlesen |
