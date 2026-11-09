@@ -1,4 +1,4 @@
-# Forever Gather
+# Forever Gathering
 
 Kräuter, Erze und Schätze auf Welt- und Minikarte für WoW Forever. Teil der ForeverUI-Reihe, mehr auf [foreverui.de](https://foreverui.de/).
 

@@ -1,5 +1,5 @@
 ## Interface: 16001
-## Title: Forever Gather
+## Title: Forever Gathering
 ## Notes: Remembers every herb, ore and treasure you gather and shows them on world map and minimap, with farm routes, sharing and materials of all characters for WoW Forever.
 ## Notes-deDE: Merkt sich jedes Kraut, Erz und jeden Schatz, den du sammelst, und zeigt sie auf Welt- und Minikarte, mit Farmrouten, Teilen und Materialien aller Charaktere für WoW Forever.
 ## Author: Syntaxlab

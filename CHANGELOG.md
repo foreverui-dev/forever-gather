@@ -2,6 +2,7 @@
 
 ## 0.2.1
 
+- Neuer Name in der Addonliste: Forever Gathering. Ordner, Befehl /fg und Einstellungen bleiben gleich.
 - Behebt die Meldung „Aktion blockiert, Blizzard vorbehalten“ (z. B. beim Schließen des Händlerfensters): Forever Gather überschreibt die globale Tabelle der Bestätigungsfenster nicht mehr.
 
 ## 0.2.0
