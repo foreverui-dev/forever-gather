@@ -1,4 +1,4 @@
--- Forever Gather: Radar – kleines Fenster mit den nächsten Fundorten, Pfeil, Entfernung und Uhrzeit-Richtung.
+-- Forever Harvest: Radar – kleines Fenster mit den nächsten Fundorten, Pfeil, Entfernung und Uhrzeit-Richtung.
 local _, FG = ...
 local Ra = FG:Modul("Radar")
 local F, P = FG.Fundorte, FG.Position

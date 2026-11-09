@@ -1,4 +1,4 @@
--- Forever Gather: Fundorte und Routen auf der großen Weltkarte.
+-- Forever Harvest: Fundorte und Routen auf der großen Weltkarte.
 local _, FG = ...
 local W = FG:Modul("Weltkarte")
 local F, P = FG.Fundorte, FG.Position

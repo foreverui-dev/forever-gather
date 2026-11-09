@@ -1,4 +1,4 @@
--- Forever Gather: Fundorte und Routen teilen.
+-- Forever Harvest: Fundorte und Routen teilen.
 -- 1) Teilen-Codes zum Kopieren (Discord, foreverui.de, Freunde): FG1R… für Routen, FG1F… für Fundorte.
 -- 2) Direkt im Spiel über Addon-Nachrichten an Gruppe, Gilde oder einen Spieler.
 local _, FG = ...
@@ -83,7 +83,7 @@ local ARTKURZ = { k = "kraut", e = "erz", s = "schatz" }
 function T:CodeLesen(code, quelle)
   code = tostring(code or ""):gsub("[\r\n]", ""):gsub("^%s+", ""):gsub("%s+$", "")
   local inhalt, summe = code:match("^(.*)~([^~]+)$")
-  if not inhalt or not inhalt:match("^FG1[RF]~") then return nil, L"Das ist kein Forever-Gather-Code." end
+  if not inhalt or not inhalt:match("^FG1[RF]~") then return nil, L"Das ist kein Forever-Harvest-Code." end
   if Pruefsumme(inhalt) ~= summe then return nil, L"Der Code ist unvollständig oder beschädigt." end
   local teile = {}
   for t in (inhalt .. "~"):gmatch("([^~]*)~") do teile[#teile + 1] = t end

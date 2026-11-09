@@ -1,4 +1,4 @@
--- Forever Gather: Farmrouten erstellen (aus Fundorten oder per Aufnahme), anzeigen und abfahren.
+-- Forever Harvest: Farmrouten erstellen (aus Fundorten oder per Aufnahme), anzeigen und abfahren.
 -- Eine Route: { id, name, karte, art, punkte = { x1, y1, x2, y2, ... }, rund, von, zeit }
 local _, FG = ...
 local R = FG:Modul("Routen")

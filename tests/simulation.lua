@@ -537,7 +537,7 @@ FG.root.charaktere["Twink-Forever"].berufe = { erz = 200 }
 local andere = FG.Extras:AndereKoennen("o2040")
 pruefe(andere[1] == "Twink (200)", "Twink kann Mithril abbauen")
 FG.Extras:Bericht("gilde")
-pruefe(chatGesendet[#chatGesendet] and chatGesendet[#chatGesendet]:match("^GUILD:Forever Gather"), "Bericht in den Gildenchat")
+pruefe(chatGesendet[#chatGesendet] and chatGesendet[#chatGesendet]:match("^GUILD:Forever Harvest"), "Bericht in den Gildenchat")
 
 print("-- Runden")
 local rr = R:AusFundorten(KARTE, "kraut")

@@ -1,4 +1,4 @@
--- Forever Gather: Sammelmaterialien (automatisch erzeugt mit scripts/daten.mjs, nicht von Hand ändern).
+-- Forever Harvest: Sammelmaterialien (automatisch erzeugt mit scripts/daten.mjs, nicht von Hand ändern).
 -- Stand der Daten: 2026-11-05
 -- [Gegenstand] = { Art, deutscher Name, englischer Name, Symbol, Qualität }
 local _, FG = ...

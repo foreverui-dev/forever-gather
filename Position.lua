@@ -1,4 +1,4 @@
--- Forever Gather: Position des Spielers, Kartengrößen in Metern, Entfernung und Richtung.
+-- Forever Harvest: Position des Spielers, Kartengrößen in Metern, Entfernung und Richtung.
 -- Fundorte werden als Kartenkoordinaten (0..1) je Karte gespeichert. Für Entfernungen
 -- rechnet das Addon die Kartengröße in Meter (eigentlich Yards, im Spiel als Meter gezeigt) um.
 local _, FG = ...

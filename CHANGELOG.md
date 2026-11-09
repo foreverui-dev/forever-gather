@@ -2,14 +2,14 @@
 
 ## 0.2.1
 
-- Neuer Name in der Addonliste: Forever Gathering. Ordner, Befehl /fg und Einstellungen bleiben gleich.
-- Behebt die Meldung „Aktion blockiert, Blizzard vorbehalten“ (z. B. beim Schließen des Händlerfensters): Forever Gather überschreibt die globale Tabelle der Bestätigungsfenster nicht mehr.
+- Neuer Name in der Addonliste: Forever Harvest. Ordner, Befehl /fg und Einstellungen bleiben gleich.
+- Behebt die Meldung „Aktion blockiert, Blizzard vorbehalten“ (z. B. beim Schließen des Händlerfensters): Forever Harvest überschreibt die globale Tabelle der Bestätigungsfenster nicht mehr.
 
 ## 0.2.0
 
 Fehler behoben:
 - Tooltip-Fehler „secret keys“: Geschützte Texte des Spiels werden jetzt erkannt und übersprungen. Dasselbe gilt für Zielnamen, Beute und Addon-Nachrichten.
-- Kennt das Spiel den Namen eines Vorkommens nicht, erkennt Forever Gather es über das gesammelte Material.
+- Kennt das Spiel den Namen eines Vorkommens nicht, erkennt Forever Harvest es über das gesammelte Material.
 - Das Code-Feld im Reiter „Teilen“ lässt sich jetzt überall anklicken.
 
 20 neue Funktionen:

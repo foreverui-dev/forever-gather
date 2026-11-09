@@ -1,4 +1,4 @@
--- Forever Gather: Fundorte und nächster Routenpunkt auf der Minikarte, Ansage naher Fundorte.
+-- Forever Harvest: Fundorte und nächster Routenpunkt auf der Minikarte, Ansage naher Fundorte.
 local _, FG = ...
 local M = FG:Modul("Minikarte")
 local F, P, W = FG.Fundorte, FG.Position, FG.Weltkarte

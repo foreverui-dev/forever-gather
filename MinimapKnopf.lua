@@ -1,4 +1,4 @@
--- Forever Gather: Knopf am Rand der Minikarte.
+-- Forever Harvest: Knopf am Rand der Minikarte.
 local _, FG = ...
 local MK = FG:Modul("MinimapKnopf")
 local L = FG.L
@@ -59,7 +59,7 @@ function MK:Start()
   knopf:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
   knopf:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-    GameTooltip:AddLine("Forever Gather", unpack(FG.farben.gold))
+    GameTooltip:AddLine("Forever Harvest", unpack(FG.farben.gold))
     GameTooltip:AddLine(L"Klick: Fenster öffnen oder schließen", 0.8, 0.8, 0.8)
     GameTooltip:AddLine(L"Umschalt+Klick: Fundorte ein oder aus", 0.8, 0.8, 0.8)
     GameTooltip:AddLine(L"Mittelklick: Wegpunkt zum nächsten Fundort", 0.8, 0.8, 0.8)

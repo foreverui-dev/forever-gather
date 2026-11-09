@@ -1,4 +1,4 @@
--- Forever Gather: Fertigkeitspunkte, Sammelziele, Favoriten, seltene Vorkommen, Aufräumen,
+-- Forever Harvest: Fertigkeitspunkte, Sammelziele, Favoriten, seltene Vorkommen, Aufräumen,
 -- Bericht, Berufe aller Charaktere und „Vorkommen merken“.
 local _, FG = ...
 local E = FG:Modul("Extras")
@@ -228,7 +228,7 @@ FG:Befehl({ "aufraeumen", "aufräumen", "cleanup" }, function(rest) E:Aufraeumen
 local KANAELE = { gruppe = "PARTY", party = "PARTY", raid = "RAID", gilde = "GUILD", guild = "GUILD", sagen = "SAY", say = "SAY" }
 function E:Bericht(kanal)
   kanal = KANAELE[(kanal or ""):lower()] or (IsInRaid and IsInRaid() and "RAID") or (IsInGroup and IsInGroup() and "PARTY") or "SAY"
-  local text = "Forever Gather: " .. F:SitzungText(true)
+  local text = "Forever Harvest: " .. F:SitzungText(true)
   if SendChatMessage then
     for teil in text:gmatch("[^\n]+") do
       while #teil > 250 do SendChatMessage(teil:sub(1, 250), kanal); teil = teil:sub(251) end

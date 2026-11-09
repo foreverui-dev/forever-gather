@@ -1,4 +1,4 @@
--- Forever Gather: Sammelmaterialien aller Charaktere (Taschen und Bank) und Tooltips.
+-- Forever Harvest: Sammelmaterialien aller Charaktere (Taschen und Bank) und Tooltips.
 local _, FG = ...
 local La = FG:Modul("Lager")
 local F = FG.Fundorte
@@ -136,7 +136,7 @@ function La:TooltipItem(tt, item)
   local summe, liste = self:Bestand(item)
   if summe == 0 then return end
   tt:AddLine(" ")
-  tt:AddDoubleLine("Forever Gather", L"Gesamt: %d":format(summe), FG.farben.gold[1], FG.farben.gold[2], FG.farben.gold[3], 1, 1, 1)
+  tt:AddDoubleLine("Forever Harvest", L"Gesamt: %d":format(summe), FG.farben.gold[1], FG.farben.gold[2], FG.farben.gold[3], 1, 1, 1)
   for i, e in ipairs(liste) do
     if i > 8 then tt:AddLine(L"… und %d weitere":format(#liste - 8), 0.6, 0.6, 0.6); break end
     local teile = {}

@@ -1,4 +1,4 @@
--- Forever Gather: Grundgerüst, Einstellungen, Fehlerprotokoll, Ereignisse, Befehle.
+-- Forever Harvest: Grundgerüst, Einstellungen, Fehlerprotokoll, Ereignisse, Befehle.
 local ADDON, FG = ...
 _G.ForeverGather = FG
 local L = FG.L
@@ -183,7 +183,7 @@ end
 function FG:Standardwerte(ziel) ergaenze(ziel, self.STANDARD) end
 
 function FG:Meldung(text, ...)
-  DEFAULT_CHAT_FRAME:AddMessage(FG.gold .. "Forever Gather:|r " .. (select("#", ...) > 0 and text:format(...) or text))
+  DEFAULT_CHAT_FRAME:AddMessage(FG.gold .. "Forever Harvest:|r " .. (select("#", ...) > 0 and text:format(...) or text))
 end
 
 -- Meldung im Chat und, wenn eingeschaltet, vorlesen.
@@ -495,7 +495,7 @@ end
 ---------------------------------------------------------------------------
 -- Tastenkürzel (Bindings.xml)
 ---------------------------------------------------------------------------
-BINDING_HEADER_FOREVERGATHER = "Forever Gather"
+BINDING_HEADER_FOREVERGATHER = "Forever Harvest"
 BINDING_NAME_FOREVERGATHER_FENSTER = L"Fenster öffnen oder schließen"
 BINDING_NAME_FOREVERGATHER_ANZEIGE = L"Fundorte auf den Karten ein oder aus"
 BINDING_NAME_FOREVERGATHER_NAECHSTER = L"Wegpunkt zum nächsten Fundort"

@@ -1,4 +1,4 @@
--- Forever Gather: bekannte Vorkommen (Kräuter, Erzadern, Ablagerungen).
+-- Forever Harvest: bekannte Vorkommen (Kräuter, Erzadern, Ablagerungen).
 -- Schlüssel ist die Objektnummer des Spiels, damit Funde in jeder Sprache zusammenpassen.
 -- { Art, deutscher Name, englischer Name, nötige Fertigkeit, Hauptmaterial }
 -- Unbekannte Vorkommen lernt das Addon beim Sammeln selbst (Name aus dem Spiel).

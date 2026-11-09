@@ -1,4 +1,4 @@
--- Forever Gather: Fundorte erfassen, speichern, filtern und die Sammelsitzung zählen.
+-- Forever Harvest: Fundorte erfassen, speichern, filtern und die Sammelsitzung zählen.
 local _, FG = ...
 local F = FG:Modul("Fundorte")
 local P = FG.Position
@@ -516,7 +516,7 @@ function F:Umgebung()
       liste[#liste + 1] = { f = f, m = P:Entfernung(karte, px, py, f.x, f.y) or 0 }
     end
   end
-  if #liste == 0 then return L"In dieser Gegend kennt Forever Gather noch keine Fundorte." end
+  if #liste == 0 then return L"In dieser Gegend kennt Forever Harvest noch keine Fundorte." end
   table.sort(liste, function(a, b) return a.m < b.m end)
   local teile = {}
   for i = 1, math.min(3, #liste) do

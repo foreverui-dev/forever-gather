@@ -1,4 +1,4 @@
--- Forever Gather: Tagesstatistik, Gesamtmengen, beste Sitzung und Rangliste der Gegenden.
+-- Forever Harvest: Tagesstatistik, Gesamtmengen, beste Sitzung und Rangliste der Gegenden.
 local _, FG = ...
 local St = FG:Modul("Statistik")
 local F, P = FG.Fundorte, FG.Position

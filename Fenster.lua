@@ -1,4 +1,4 @@
--- Forever Gather: Hauptfenster mit Reitern (Übersicht, Karte, Routen, Lager, Teilen, Einstellungen)
+-- Forever Harvest: Hauptfenster mit Reitern (Übersicht, Karte, Routen, Lager, Teilen, Einstellungen)
 -- und die kleine Sitzungsanzeige.
 local _, FG = ...
 local Fe = FG:Modul("Fenster")
@@ -170,7 +170,7 @@ bauen.start = function(s)
   gruss:SetSpacing(2)
   merke({ Auffrischen = function()
     if not FG.db.eingerichtet then
-      gruss:SetText(L"Willkommen! Forever Gather merkt sich jeden Fundort, an dem du sammelst, und zeigt ihn auf Welt- und Minikarte. "
+      gruss:SetText(L"Willkommen! Forever Harvest merkt sich jeden Fundort, an dem du sammelst, und zeigt ihn auf Welt- und Minikarte. "
         .. L"Du musst nichts einrichten: einfach losziehen und sammeln. Funde aus deiner Gruppe kommen automatisch dazu.")
     else
       local teile = {}
@@ -480,7 +480,7 @@ bauen.teilen = function(s)
     k:SetPoint("TOPLEFT", ((i - 1) % 3) * 178, -118 - math.floor((i - 1) / 3) * 28)
   end
   local liste = {
-    { L"Funde mit Gruppe teilen", L"Neue Fundorte gehen an Mitspieler mit Forever Gather.", "teilenGruppe" },
+    { L"Funde mit Gruppe teilen", L"Neue Fundorte gehen an Mitspieler mit Forever Harvest.", "teilenGruppe" },
     { L"Funde mit Gilde teilen", L"Neue Fundorte gehen an die Gilde.", "teilenGilde" },
     { L"Funde anderer annehmen", L"Fundorte von Gruppe und Gilde übernehmen.", "empfangen" },
   }
@@ -600,7 +600,7 @@ bauen.einstellungen = function(s)
     f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -20 - math.floor((i - 1) / 2) * 38)
   end
   local test = Knopf(s, L"Vorlesen testen", 150, function()
-    if not FG:Sprechen(L"Hallo! So klingt Forever Gather.", true) then
+    if not FG:Sprechen(L"Hallo! So klingt Forever Harvest.", true) then
       FG:Meldung(L"die Sprachausgabe ist nicht verfügbar. In den Spieleinstellungen unter Barrierefreiheit › Text-zu-Sprache lässt sie sich einrichten.")
     end
   end)
@@ -656,7 +656,7 @@ local function Bauen()
   local kopf = fenster:CreateTexture(nil, "BORDER")
   kopf:SetPoint("TOPLEFT"); kopf:SetPoint("TOPRIGHT"); kopf:SetHeight(28)
   kopf:SetColorTexture(0.12, 0.10, 0.06, 1)
-  local titel = Text(fenster, "GameFontNormalLarge", "Forever Gather")
+  local titel = Text(fenster, "GameFontNormalLarge", "Forever Harvest")
   titel:SetPoint("TOPLEFT", 12, -7)
   local zu = CreateFrame("Button", nil, fenster, "UIPanelCloseButton")
   zu:SetPoint("TOPRIGHT", 2, 2)
@@ -722,7 +722,7 @@ function Fe:Oeffnen(name)
   end
   self:Auffrischen()
   for _, r in ipairs(REITER) do
-    if r[1] == aktuell then FG:Sprechen("Forever Gather: " .. r[2]) end
+    if r[1] == aktuell then FG:Sprechen("Forever Harvest: " .. r[2]) end
   end
 end
 
@@ -778,7 +778,7 @@ function Fe:SitzungsAnzeigeAuffrischen()
   anzeige:SetScale(FG:Groesse())
   anzeige.hg:SetColorTexture(0.06, 0.06, 0.08, FG:Deckkraft(0.7))
   local s = FG.sitzung
-  anzeige.oben:SetText(L"Forever Gather · %s · %d Funde":format(FG:ZeitText(F:SitzungDauer()), s.funde))
+  anzeige.oben:SetText(L"Forever Harvest · %s · %d Funde":format(FG:ZeitText(F:SitzungDauer()), s.funde))
   local menge = 0
   for _, n in pairs(s.items) do menge = menge + n end
   local unten = L"%d Stück · %s pro Stunde":format(menge, FG:ZahlText(F:ProStunde(menge)))

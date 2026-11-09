@@ -14,7 +14,7 @@ const zeilen = items
   .sort((a, b) => a.id - b.id)
   .map((i) => `  [${i.id}] = { ${lua(ARTEN[i.sc])}, ${lua(i.n)}, ${lua(i.en)}, ${i.ic || 134400}, ${i.q ?? 1} },`);
 
-const kopf = `-- Forever Gather: Sammelmaterialien (automatisch erzeugt mit scripts/daten.mjs, nicht von Hand ändern).
+const kopf = `-- Forever Harvest: Sammelmaterialien (automatisch erzeugt mit scripts/daten.mjs, nicht von Hand ändern).
 -- Stand der Daten: ${String(fetchedAt || "").slice(0, 10)}
 -- [Gegenstand] = { Art, deutscher Name, englischer Name, Symbol, Qualität }
 local _, FG = ...
