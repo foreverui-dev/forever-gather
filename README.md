@@ -73,7 +73,7 @@ Fundorte füllen sich durch dein eigenes Sammeln und durch Funde deiner Gruppe, 
 ## Links
 
 - Webseite: [foreverui.de](https://foreverui.de/)
-- Fragen und Ideen: [Discord](https://discord.gg/KFPPhER4Y2)
+- Fragen und Ideen: [Discord](https://discord.gg/Sh8zyYUKRX)
 - Änderungen: siehe CHANGELOG.md
 
 Lizenz: MIT
