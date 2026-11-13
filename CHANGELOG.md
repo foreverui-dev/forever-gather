@@ -2,6 +2,7 @@
 
 ## 0.3.0
 
+- Das Fehlerprotokoll beginnt mit jeder neuen Version leer. Alte, längst behobene Einträge (z. B. der Tooltip-Fehler „secret keys“ aus 0.1) tauchen nicht mehr als aktuelle Fehler auf. `/fg fehler leeren` leert es von Hand.
 - Neues Kartenfenster: eine kleine Karte der Gegend in einem eigenen, verschiebbaren Fenster. Sie zeigt deine Position mit Blickrichtung, alle Fundorte und Routen als Linien. Mit dem Mausrad zoomst du, ein Klick auf einen Fundort setzt einen Wegpunkt. Öffnen mit `/fg karte`, dem Knopf in der Übersicht oder einem Tastenkürzel. Liefert das Spiel kein Kartenbild, zeigt das Fenster Fundorte und Route ohne Bild.
 
 ## 0.2.1

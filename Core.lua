@@ -6,6 +6,8 @@ local L = FG.L
 local metadaten = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
 FG.version = (metadaten and metadaten(ADDON, "Version")) or "dev"
 if FG.version:find("@") then FG.version = "dev" end
+-- Wird bei jeder Fehlerbehebung erhöht, damit alte Einträge aus dem Fehlerprotokoll verschwinden.
+FG.CODESTAND = 3
 
 FG.farben = {
   gold  = { 0.95, 0.77, 0.35 },
@@ -378,6 +380,12 @@ FG:Ereignis("ADDON_LOADED", function(name)
   root.gesamt = root.gesamt or {}         -- [Gegenstand] = Menge insgesamt
   ForeverGatherCharDB.ziele = ForeverGatherCharDB.ziele or {} -- [Gegenstand] = Zielmenge
   root.version = 1
+  -- Alte Einträge aus früheren Versionen nicht mehr als aktuelle Fehler zeigen:
+  -- Bei jedem neuen Codestand beginnt das Fehlerprotokoll leer.
+  if root.fehlerStand ~= FG.CODESTAND then
+    root.fehler = {}
+    root.fehlerStand = FG.CODESTAND
+  end
   FG.root, FG.char = root, ForeverGatherCharDB
   FG:ProfilLaden()
   FG:SpracheAnwenden()
@@ -437,6 +445,9 @@ SlashCmdList.FOREVERGATHER = function(eingabe)
       FG:Meldung(L"Einstellungen zurückgesetzt.")
     elseif befehl == "diagnose" then
       FG:Diagnose(true)
+    elseif befehl == "fehler" and (rest == "leeren" or rest == "clear") then
+      FG.root.fehler = {}
+      FG:Meldung(L"Fehlerprotokoll geleert.")
     elseif befehl == "fehler" then
       local liste = FG.root.fehler
       if not liste or #liste == 0 then

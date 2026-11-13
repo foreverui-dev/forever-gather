@@ -177,6 +177,7 @@ C_ChatInfo = {
 ---------------------------------------------------------------------------
 -- Addon laden
 ---------------------------------------------------------------------------
+ForeverGatherDB = { fehler = { "Tooltip: Fundorte.lua:50: alter Fehler aus 0.1" } }
 local ns = {}
 for _, datei in ipairs(toc) do assert(loadfile(datei))("ForeverGather", ns) end
 local FG = ForeverGather
@@ -186,6 +187,7 @@ local function Ereignis(name, ...) V.skripte.OnEvent(V, name, ...) end
 Ereignis("ADDON_LOADED", "ForeverGather")
 Ereignis("PLAYER_LOGIN")
 Timer()
+pruefe(#ForeverGatherDB.fehler == 0 and ForeverGatherDB.fehlerStand == FG.CODESTAND, "alte Fehler aus früheren Versionen werden beim Laden entfernt")
 local F, R, T, La, M, W, P = FG.Fundorte, FG.Routen, FG.Teilen, FG.Lager, FG.Minikarte, FG.Weltkarte, FG.Position
 pruefe(ForeverGatherFenster and ForeverGatherFenster:IsShown(), "Willkommensfenster beim ersten Start")
 FG.Fenster:Schliessen()
@@ -578,7 +580,7 @@ R:Anhalten()
 print("-- Befehle, Tasten, Fenster")
 local befehle = { "", "", "hilfe", "einstellungen", "naechster", "zeigen", "zeigen", "vorlesen", "sitzung", "lager", "lager kupfer",
   "route neu", "route", "route weiter", "route stopp", "route kraut", "aufnahme", "aufnahme", "teilen", "teilen route gilde",
-  "import", "import kaputt", "radar", "radar", "ziel", "berufe", "statistik", "bericht", "merken", "aufraeumen", "diagnose", "fehler", "sprache", "sprache de", "unsinn", "sitzung neu" }
+  "import", "import kaputt", "radar", "radar", "ziel", "berufe", "statistik", "bericht", "merken", "aufraeumen", "diagnose", "fehler", "fehler leeren", "sprache", "sprache de", "unsinn", "sitzung neu" }
 for _, b in ipairs(befehle) do SlashCmdList.FOREVERGATHER(b) end
 Timer()
 pruefe(FG.root.diagnose and FG.root.diagnose.karte == true and #FG.root.diagnose.zauber >= 3, "Diagnose gespeichert")
