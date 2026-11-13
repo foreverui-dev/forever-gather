@@ -1,25 +1,31 @@
--- Forever Harvest: Hauptfenster mit Reitern (Übersicht, Karte, Routen, Lager, Teilen, Einstellungen)
+-- Forever Harvest: Hauptfenster im ForeverUI-Stil (Seitenleiste mit Gruppen, Inhaltskasten, Suche)
 -- und die kleine Sitzungsanzeige.
 local _, FG = ...
 local Fe = FG:Modul("Fenster")
 local F, P, R, La, T = FG.Fundorte, FG.Position, FG.Routen, FG.Lager, FG.Teilen
 local L = FG.L
 
-local BREITE, HOEHE = 640, 480
+local BREITE = 640                    -- Breite, mit der die Seiten rechnen (Inhalt = BREITE - 40)
+local FB, FH = 840, 590              -- Hauptfenster (kleinste Größe)
+local SEITENLEISTE = 168
 local fenster, reiterKnoepfe, seiten = nil, {}, {}
 local aktuell = "start"
 local elemente = {}   -- alles mit Auffrischen()
+local suchListe = {}  -- { Titel, Seite } aller Schalter für die Suche
+local bautSeite       -- Seite, die gerade gebaut wird
 
-local REITER = {
-  { "start", L"Übersicht" },
-  { "karte", L"Karte" },
-  { "routen", L"Routen" },
-  { "lager", L"Lager" },
-  { "statistik", L"Statistik" },
-  { "teilen", L"Teilen" },
-  { "hilfen", L"Hilfen" },
-  { "einstellungen", L"Einstellungen" },
+-- Seitenleiste im ForeverUI-Stil: Gruppen mit Einträgen.
+local GRUPPEN = {
+  { L"Sammeln", { { "start", L"Übersicht" }, { "karte", L"Karte" }, { "routen", L"Routen" },
+    { "lager", L"Lager" }, { "statistik", L"Statistik" } } },
+  { L"Funktionen", { { "teilen", L"Teilen" }, { "hilfen", L"Hilfen" } } },
+  { L"Darstellung", { { "darstellung", L"Anzeige und Farben" } } },
+  { L"Zugang", { { "zugang", L"Barrierefreiheit und Profil" } } },
+  { L"Hilfe", { { "bedienung", L"Bedienung" }, { "fehler", L"Fehler melden" } } },
 }
+local REITER = {}
+for _, g in ipairs(GRUPPEN) do for _, r in ipairs(g[2]) do REITER[#REITER + 1] = r end end
+local ALIAS = { einstellungen = "darstellung", einrichten = "start", hilfe = "bedienung" }
 
 ---------------------------------------------------------------------------
 -- Bausteine
@@ -68,6 +74,7 @@ local function Schalter(eltern, titel, hilfe, lesen, schreiben)
   end)
   f.Auffrischen = function() c:SetChecked(lesen() and true or false) end
   f.knopf = c
+  if bautSeite then suchListe[#suchListe + 1] = { titel, bautSeite, f } end
   return merke(f)
 end
 
@@ -93,7 +100,7 @@ local function Karte(eltern, breite, hoehe, titel, istAn, klick)
   k:SetScript("OnClick", function() FG:Sicher("Karte", klick); FG:Anwenden(); Fe:Auffrischen() end)
   k.Auffrischen = function()
     local an = istAn()
-    local g = FG.farben.gold
+    local g = FG.farben.akzent
     k.rand:SetColorTexture(g[1], g[2], g[3], an and 1 or 0)
     k.hg:SetColorTexture(an and 0.16 or 0.06, an and 0.13 or 0.06, an and 0.07 or 0.08, FG:Deckkraft(0.7))
   end
@@ -347,7 +354,7 @@ bauen.routen = function(s)
     local zeichen = R.aktiv == r and "» " or ""
     z.links:SetText(zeichen .. r.name .. (r.versteckt and (" (" .. L"versteckt" .. ")") or ""))
     z.rechts:SetText(FG.Einzahl(L"%s · %d Punkte · %s":format(P:KartenName(r.karte), #r.punkte / 2, P:MeterText(R:Laenge(r)))))
-    local g = FG.farben.gold
+    local g = FG.farben.akzent
     z.wahl:SetColorTexture(g[1], g[2], g[3], Fe.route == r and 0.18 or 0)
   end, function(r)
     Fe.route = r
@@ -586,7 +593,7 @@ bauen.hilfen = function(s)
   tipp:SetPoint("TOPLEFT", 0, -340)
 end
 
-bauen.einstellungen = function(s)
+bauen.zugang = function(s)
   local t1 = Text(s, "GameFontNormal", L"Barrierefreiheit")
   t1:SetPoint("TOPLEFT", 0, 0)
   local liste = {
@@ -595,7 +602,6 @@ bauen.einstellungen = function(s)
     { L"Farbenblind-Modus", L"Blau und Orange statt Grün und Rot.", "farbenblind" },
     { L"Alles größer", L"Fenster und Kartensymbole ein Viertel größer.", "allesGroesser" },
     { L"Weniger Bewegung", L"Keine Einblendeffekte.", "wenigerBewegung" },
-    { L"Radar", L"Fenster mit den nächsten Fundorten, Pfeil und Entfernung.", "radar" },
   }
   for i, e in ipairs(liste) do
     local f = DbSchalter(s, e[1], e[2], e[3])
@@ -606,47 +612,176 @@ bauen.einstellungen = function(s)
       FG:Meldung(L"die Sprachausgabe ist nicht verfügbar. In den Spieleinstellungen unter Barrierefreiheit › Text-zu-Sprache lässt sie sich einrichten.")
     end
   end)
-  test:SetPoint("TOPLEFT", 0, -136)
+  test:SetPoint("TOPLEFT", 300, -100)
 
-  local t2 = Text(s, "GameFontNormal", L"Allgemein")
-  t2:SetPoint("TOPLEFT", 0, -170)
-  local liste2 = {
+  local t2 = Text(s, "GameFontNormal", L"Profil")
+  t2:SetPoint("TOPLEFT", 0, -150)
+  local profil = Schalter(s, L"Eigene Einstellungen für diesen Charakter", L"Sonst gelten sie für alle Charaktere.",
+    function() return FG.char.profil == "eigen" end,
+    function(v) FG:ProfilWechseln(v and "eigen" or "konto") end)
+  profil:SetPoint("TOPLEFT", 0, -170)
+
+  local t3 = Text(s, "GameFontNormal", L"Sprache")
+  t3:SetPoint("TOPLEFT", 0, -224)
+  for i, o in ipairs({ { "auto", L"Auto" }, { "de", "Deutsch" }, { "en", "English" } }) do
+    local k = Karte(s, 120, 26, o[2], function() return FG.db.sprache == o[1] end, function()
+      FG.db.sprache = o[1]; FG:SpracheAnwenden(); FG:Meldung(L"Sprache geändert. Ganz wirkt sie nach /reload.")
+    end)
+    k:SetPoint("TOPLEFT", (i - 1) * 128, -244)
+  end
+  local zurueck = Knopf(s, L"Seite zurücksetzen", 160, function()
+    for _, e in ipairs(liste) do FG.db[e[3]] = FG.STANDARD[e[3]] end
+    FG:Anwenden()
+  end)
+  zurueck:SetPoint("TOPLEFT", 0, -300)
+end
+
+bauen.darstellung = function(s)
+  local t1 = Text(s, "GameFontNormal", L"Akzentfarbe")
+  t1:SetPoint("TOPLEFT", 0, 0)
+  local namen = { gold = L"Gold", klasse = L"Klasse", eis = L"Eis", glut = L"Glut", wald = L"Wald", silber = L"Silber" }
+  for i, a in ipairs(FG.AKZENTE) do
+    local k = Karte(s, 92, 26, namen[a[1]] or a[2], function() return (FG.db.akzent or "gold") == a[1] end,
+      function() FG.db.akzent = a[1]; FG:AkzentAnwenden() end)
+    k:SetPoint("TOPLEFT", (i - 1) * 98, -20)
+  end
+
+  local t2 = Text(s, "GameFontNormal", L"Anzeige")
+  t2:SetPoint("TOPLEFT", 0, -62)
+  local liste = {
     { L"Bestand im Tooltip", L"Materialien aller Charaktere am Gegenstand.", "materialTooltip" },
     { L"Fertigkeit im Tooltip", L"Am Vorkommen: nötige Stufe und ob es klappt.", "vorkommenTooltip" },
     { L"Wert anzeigen", L"Wert der Sitzung (Händler- oder Auktionspreis).", "wert" },
     { L"Routen auf der Weltkarte", L"Linien der Routen dieser Gegend.", "routeLinien" },
     { L"Routenpunkt auf der Minikarte", L"Nächster Punkt der laufenden Route.", "routeMinikarte" },
     { L"Knopf an der Minikarte", L"Zum Öffnen des Fensters.", "minimapKnopf" },
+    { L"Radar", L"Fenster mit den nächsten Fundorten, Pfeil und Entfernung.", "radar" },
+    { L"Kartenfenster", L"Kleine Karte der Gegend mit Fundorten und Route.", "kartenfenster" },
+    { L"Sitzungsanzeige", L"Kleines Feld mit Funden, Stück pro Stunde und Wert.", "sitzungsAnzeige" },
   }
-  for i, e in ipairs(liste2) do
+  for i, e in ipairs(liste) do
     local f = DbSchalter(s, e[1], e[2], e[3])
-    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -190 - math.floor((i - 1) / 2) * 38)
+    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -82 - math.floor((i - 1) / 2) * 38)
   end
-  local profil = Schalter(s, L"Eigene Einstellungen für diesen Charakter", L"Sonst gelten sie für alle Charaktere.",
-    function() return FG.char.profil == "eigen" end,
-    function(v) FG:ProfilWechseln(v and "eigen" or "konto") end)
-  profil:SetPoint("TOPLEFT", 0, -306)
-  local t3 = Text(s, "GameFontNormal", L"Sprache")
-  t3:SetPoint("TOPLEFT", 300, -310)
-  for i, o in ipairs({ { "auto", L"Auto" }, { "de", "Deutsch" }, { "en", "English" } }) do
-    local k = Karte(s, 74, 24, o[2], function() return FG.db.sprache == o[1] end, function()
-      FG.db.sprache = o[1]; FG:SpracheAnwenden(); FG:Meldung(L"Sprache geändert. Ganz wirkt sie nach /reload.")
-    end)
-    k:SetPoint("TOPLEFT", 370 + (i - 1) * 78, -304)
-  end
+  local zurueck = Knopf(s, L"Seite zurücksetzen", 160, function()
+    FG.db.akzent = FG.STANDARD.akzent
+    for _, e in ipairs(liste) do FG.db[e[3]] = FG.STANDARD[e[3]] end
+    FG:Anwenden()
+  end)
+  zurueck:SetPoint("TOPLEFT", 0, -280)
+end
+
+-- Schreibgeschütztes Textfeld zum Kopieren (Strg+C).
+local function KopierFeld(eltern, breite, hoehe)
+  local rahmen = CreateFrame("ScrollFrame", nil, eltern, "UIPanelScrollFrameTemplate")
+  rahmen:SetSize(breite, hoehe)
+  Hintergrund(rahmen, 0.35)
+  local box = CreateFrame("EditBox", nil, rahmen)
+  box:SetMultiLine(true)
+  box:SetAutoFocus(false)
+  box:SetFontObject(ChatFontNormal or "GameFontHighlightSmall")
+  box:SetWidth(breite - 10)
+  box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+  box:SetScript("OnTextChanged", function(self, vonHand) if vonHand and self.fest then self:SetText(self.fest) end end)
+  box:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+  rahmen:SetScrollChild(box)
+  rahmen.box = box
+  rahmen.Setzen = function(text) box.fest = text; box:SetText(text) end
+  return rahmen
+end
+
+bauen.bedienung = function(s)
+  local t1 = Text(s, "GameFontNormal", L"So geht's")
+  t1:SetPoint("TOPLEFT", 0, 0)
+  local text = Text(s, "GameFontHighlightSmall", L"Sammle einfach wie immer: Jeder Fundort wird gemerkt und erscheint auf Welt- und Minikarte. "
+    .. L"Klick auf einen Fundort setzt einen Wegpunkt, Rechtsklick löscht ihn, Strg+Klick macht ihn zum Favoriten. "
+    .. L"Alle Funktionen haben Tastenkürzel (Tastaturbelegung › AddOns).", BREITE - 40)
+  text:SetPoint("TOPLEFT", 0, -20)
+  text:SetSpacing(2)
+  local t2 = Text(s, "GameFontNormal", L"Befehle")
+  t2:SetPoint("TOPLEFT", 0, -78)
+  local befehle = KopierFeld(s, BREITE - 60, 170)
+  befehle:SetPoint("TOPLEFT", 0, -98)
+  merke({ Auffrischen = function() befehle.Setzen(table.concat(FG.HILFE, "\n")) end })
+  local t3 = Text(s, "GameFontNormal", L"Discord und Feedback")
+  t3:SetPoint("TOPLEFT", 0, -284)
+  local link = KopierFeld(s, 300, 24)
+  link:SetPoint("TOPLEFT", 0, -304)
+  link.Setzen(FG.DISCORD or "https://foreverui.de/")
+  local hinweis = Text(s, "GameFontDisableSmall", L"Fragen, Ideen und Fundort-Codes sind dort willkommen. Strg+C kopiert den Link.", 280)
+  hinweis:SetPoint("TOPLEFT", 310, -304)
+end
+
+bauen.fehler = function(s)
+  local t1 = Text(s, "GameFontNormal", L"Fehler melden")
+  t1:SetPoint("TOPLEFT", 0, 0)
+  local text = Text(s, "GameFontHighlightSmall", L"Läuft etwas schief, kopiere den Text unten (Strg+A, Strg+C) und schick ihn uns im Discord. "
+    .. L"Das Protokoll beginnt mit jeder neuen Version leer.", BREITE - 40)
+  text:SetPoint("TOPLEFT", 0, -20)
+  local feld = KopierFeld(s, BREITE - 60, 230)
+  feld:SetPoint("TOPLEFT", 0, -60)
+  merke({ Auffrischen = function()
+    local zeilen = { ("Forever Harvest %s · %s"):format(FG.version, select(4, GetBuildInfo()) or "?") }
+    local liste = FG.root and FG.root.fehler or {}
+    if #liste == 0 then zeilen[#zeilen + 1] = L"keine Fehler aufgezeichnet." end
+    for _, f in ipairs(liste) do zeilen[#zeilen + 1] = f end
+    feld.Setzen(table.concat(zeilen, "\n"))
+  end })
+  local leeren = Knopf(s, L"Protokoll leeren", 160, function() FG.root.fehler = {} end)
+  leeren:SetPoint("TOPLEFT", 0, -304)
+  local diag = Knopf(s, L"Diagnose schreiben", 160, function() FG:Diagnose(true) end)
+  diag:SetPoint("LEFT", leeren, "RIGHT", 10, 0)
 end
 
 ---------------------------------------------------------------------------
 -- Fenster
 ---------------------------------------------------------------------------
+local function Flaeche(f, ebene, r, g, b, a)
+  local t = f:CreateTexture(nil, ebene or "BACKGROUND")
+  t:SetColorTexture(r, g, b, a)
+  return t
+end
+
+-- Vier 1-px-Kanten als Rand.
+local function Rand(f, r, g, b, a)
+  f.kanten = {}
+  local function kante(p1, p2, breit)
+    local t = f:CreateTexture(nil, "BORDER")
+    t:SetPoint(p1); t:SetPoint(p2)
+    if breit then t:SetHeight(1) else t:SetWidth(1) end
+    t:SetColorTexture(r, g, b, a)
+    f.kanten[#f.kanten + 1] = t
+  end
+  kante("TOPLEFT", "TOPRIGHT", true); kante("BOTTOMLEFT", "BOTTOMRIGHT", true)
+  kante("TOPLEFT", "BOTTOMLEFT"); kante("TOPRIGHT", "BOTTOMRIGHT")
+end
+
+local function Suchen(text)
+  text = (text or ""):lower()
+  if #text < 2 then return end
+  for _, e in ipairs(suchListe) do
+    if e[1]:lower():find(text, 1, true) then
+      Fe:Oeffnen(e[2])
+      if e[3].knopf and e[3].knopf.LockHighlight then e[3].knopf:LockHighlight() end
+      Fe.gefunden = e
+      return e
+    end
+  end
+end
+Fe.Suchen = Suchen
+
 local function Bauen()
   fenster = CreateFrame("Frame", "ForeverGatherFenster", UIParent)
-  fenster:SetSize(BREITE, HOEHE)
-  fenster:SetFrameStrata("HIGH")
+  local gr = FG.db.fensterGroesse
+  fenster:SetSize(gr and gr[1] or FB, gr and gr[2] or FH)
+  fenster:SetFrameStrata("DIALOG")
   fenster:SetToplevel(true)
   fenster:SetClampedToScreen(true)
   fenster:EnableMouse(true)
   fenster:SetMovable(true)
+  if fenster.SetResizable then fenster:SetResizable(true) end
+  if fenster.SetResizeBounds then fenster:SetResizeBounds(FB, FH, 1400, 1000)
+  elseif fenster.SetMinResize then fenster:SetMinResize(FB, FH) end
   fenster:RegisterForDrag("LeftButton")
   fenster:SetScript("OnDragStart", fenster.StartMoving)
   fenster:SetScript("OnDragStop", function(self)
@@ -654,32 +789,97 @@ local function Bauen()
     local p, _, rp, x, y = self:GetPoint()
     FG.db.fensterPos = { p, rp, x, y }
   end)
-  Hintergrund(fenster, 0.92)
-  local kopf = fenster:CreateTexture(nil, "BORDER")
-  kopf:SetPoint("TOPLEFT"); kopf:SetPoint("TOPRIGHT"); kopf:SetHeight(28)
-  kopf:SetColorTexture(0.12, 0.10, 0.06, 1)
-  local titel = Text(fenster, "GameFontNormalLarge", "Forever Harvest")
-  titel:SetPoint("TOPLEFT", 12, -7)
+  Hintergrund(fenster, 0.99)
+  local a = FG.farben.akzent
+  Rand(fenster, a[1], a[2], a[3], 0.45)
+  fenster.band = Flaeche(fenster, "BORDER", a[1], a[2], a[3], 0.08)
+  fenster.band:SetPoint("TOPLEFT", 1, -1); fenster.band:SetPoint("TOPRIGHT", -1, -1); fenster.band:SetHeight(64)
+
+  fenster.name = Text(fenster, "GameFontNormalSmall", "FOREVER HARVEST")
+  fenster.name:SetPoint("TOPLEFT", 24, -16)
+  fenster.titel = Text(fenster, "GameFontHighlightLarge", "")
+  fenster.titel:SetPoint("TOPLEFT", 24, -34)
   local zu = CreateFrame("Button", nil, fenster, "UIPanelCloseButton")
-  zu:SetPoint("TOPRIGHT", 2, 2)
+  zu:SetPoint("TOPRIGHT", -4, -4)
   zu:SetScript("OnClick", function() Fe:Schliessen() end)
   tinsert(UISpecialFrames, "ForeverGatherFenster")
 
-  local x = 12
-  for _, r in ipairs(REITER) do
-    local k = CreateFrame("Button", nil, fenster)
-    k:SetSize(74, 24)
-    k:SetPoint("TOPLEFT", x, -34)
-    x = x + 77
-    Hintergrund(k, 0.6)
-    k.text = Text(k, "GameFontNormalSmall", r[2], 72)
-    k.text:SetJustifyH("CENTER")
-    k.text:SetPoint("CENTER", 0, 0)
-    k.linie = k:CreateTexture(nil, "BORDER")
-    k.linie:SetPoint("BOTTOMLEFT"); k.linie:SetPoint("BOTTOMRIGHT"); k.linie:SetHeight(2)
-    k:SetScript("OnClick", function() Fe:Oeffnen(r[1]) end)
-    reiterKnoepfe[r[1]] = k
+  -- Suche oben rechts
+  local suche = CreateFrame("EditBox", nil, fenster, "InputBoxTemplate")
+  suche:SetSize(200, 20)
+  suche:SetPoint("TOPRIGHT", -44, -24)
+  suche:SetAutoFocus(false)
+  suche.leer = Text(suche, "GameFontDisableSmall", L"Einstellung suchen …")
+  suche.leer:SetPoint("LEFT", 2, 0)
+  suche:SetScript("OnTextChanged", function(self)
+    local t = self:GetText()
+    suche.leer:SetShown(t == "")
+    FG:Sicher("Suche", Suchen, t)
+  end)
+  suche:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+  suche:SetScript("OnEscapePressed", function(self) self:SetText(""); self:ClearFocus() end)
+  Fe.suche = suche
+
+  -- Seitenleiste
+  local leiste = CreateFrame("Frame", nil, fenster)
+  leiste:SetPoint("TOPLEFT", 1, -65)
+  leiste:SetPoint("BOTTOMLEFT", 1, 1)
+  leiste:SetWidth(SEITENLEISTE)
+  Hintergrund(leiste, 0.5)
+  fenster.leiste = leiste
+  fenster.gruppen = {}
+  local y = -14
+  for _, g in ipairs(GRUPPEN) do
+    local kopf = Text(leiste, "GameFontNormalSmall", g[1])
+    kopf:SetPoint("TOPLEFT", 16, y)
+    fenster.gruppen[#fenster.gruppen + 1] = kopf
+    y = y - 18
+    for _, r in ipairs(g[2]) do
+      local k = CreateFrame("Button", nil, leiste)
+      k:SetSize(SEITENLEISTE, 18)
+      k:SetPoint("TOPLEFT", 0, y)
+      k.wahl = Flaeche(k, "BACKGROUND", 1, 1, 1, 0)
+      k.wahl:SetAllPoints()
+      k.strich = Flaeche(k, "BORDER", 1, 1, 1, 0)
+      k.strich:SetPoint("TOPLEFT"); k.strich:SetPoint("BOTTOMLEFT"); k.strich:SetWidth(2)
+      local hl = k:CreateTexture(nil, "HIGHLIGHT")
+      hl:SetAllPoints()
+      hl:SetColorTexture(1, 1, 1, 0.05)
+      k.text = Text(k, "GameFontHighlightSmall", r[2], SEITENLEISTE - 32)
+      k.text:SetPoint("LEFT", 24, 0)
+      k:SetScript("OnClick", function() Fe:Oeffnen(r[1]) end)
+      reiterKnoepfe[r[1]] = k
+      y = y - 18
+    end
+    y = y - 10
   end
+  local version = Text(leiste, "GameFontDisableSmall", L"Version %s":format(FG.version))
+  version:SetPoint("BOTTOMLEFT", 16, 12)
+
+  -- Inhaltskasten
+  local kasten = CreateFrame("Frame", nil, fenster)
+  kasten:SetPoint("TOPLEFT", SEITENLEISTE + 12, -76)
+  kasten:SetPoint("BOTTOMRIGHT", -12, 44)
+  Hintergrund(kasten, 0.35)
+  Rand(kasten, 1, 1, 1, 0.08)
+  fenster.kasten = kasten
+
+  local schliessen = Knopf(fenster, L"Schließen", 120, function() Fe:Schliessen() end)
+  schliessen:SetPoint("BOTTOMRIGHT", -12, 12)
+
+  -- Griff zum Vergrößern
+  local griff = CreateFrame("Button", nil, fenster)
+  griff:SetSize(16, 16)
+  griff:SetPoint("BOTTOMRIGHT", -2, 2)
+  griff:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+  griff:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+  griff:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+  griff:SetScript("OnMouseDown", function() if fenster.StartSizing then fenster:StartSizing("BOTTOMRIGHT") end end)
+  griff:SetScript("OnMouseUp", function()
+    fenster:StopMovingOrSizing()
+    FG.db.fensterGroesse = { math.floor(fenster:GetWidth() + 0.5), math.floor(fenster:GetHeight() + 0.5) }
+  end)
+
   fenster:SetScript("OnHide", function()
     if not FG.db.eingerichtet then FG.db.eingerichtet = true end
   end)
@@ -689,43 +889,59 @@ end
 
 local function Seite(name)
   if not seiten[name] then
-    local s = CreateFrame("Frame", nil, fenster)
-    s:SetPoint("TOPLEFT", 20, -70)
-    s:SetPoint("BOTTOMRIGHT", -20, 12)
+    local s = CreateFrame("Frame", nil, fenster.kasten)
+    s:SetPoint("TOPLEFT", 16, -14)
+    s:SetPoint("BOTTOMRIGHT", -16, 10)
     seiten[name] = s
+    bautSeite = name
     bauen[name](s)
+    bautSeite = nil
   end
   return seiten[name]
+end
+
+local function TitelVon(name)
+  for _, r in ipairs(REITER) do if r[1] == name then return r[2] end end
+  return ""
 end
 
 function Fe:Auffrischen()
   if not fenster or not fenster:IsShown() then return end
   fenster:SetScale(FG:Groesse())
-  fenster.hg:SetColorTexture(0.06, 0.06, 0.08, FG:Deckkraft(0.92))
-  local g = FG.farben.gold
+  fenster.hg:SetColorTexture(0.06, 0.06, 0.08, FG:Deckkraft(0.99))
+  local a = FG.farben.akzent
+  for _, t in ipairs(fenster.kanten) do t:SetColorTexture(a[1], a[2], a[3], FG.db.kontrast and 0.9 or 0.45) end
+  fenster.band:SetColorTexture(a[1], a[2], a[3], 0.08)
+  fenster.name:SetTextColor(a[1], a[2], a[3])
+  fenster.titel:SetText(TitelVon(aktuell))
+  for _, k in ipairs(fenster.gruppen) do k:SetTextColor(a[1], a[2], a[3]) end
   for name, k in pairs(reiterKnoepfe) do
-    k.linie:SetColorTexture(g[1], g[2], g[3], name == aktuell and 1 or 0)
-    k.text:SetTextColor(name == aktuell and 1 or 0.8, name == aktuell and 0.85 or 0.8, name == aktuell and 0.4 or 0.8)
+    local an = name == aktuell
+    k.wahl:SetColorTexture(a[1], a[2], a[3], an and 0.14 or 0)
+    k.strich:SetColorTexture(a[1], a[2], a[3], an and 1 or 0)
+    local h = FG.farben.hell
+    if an then k.text:SetTextColor(1, 1, 1) else k.text:SetTextColor(h[1], h[2], h[3]) end
   end
   for _, e in ipairs(elemente) do FG:Sicher("Fenster", e.Auffrischen) end
 end
 
 function Fe:Oeffnen(name)
-  if not fenster then Bauen() end
-  if name == "einrichten" then name = "start" end
+  if not fenster then
+    Bauen()
+    for _, r in ipairs(REITER) do Seite(r[1]):Hide() end   -- alle Seiten bauen, damit die Suche alles findet
+  end
+  name = ALIAS[name] or name
   aktuell = (name and bauen[name]) and name or aktuell
   for n, s in pairs(seiten) do if n ~= aktuell then s:Hide() end end
   Seite(aktuell):Show()
   if not fenster:IsShown() then
     fenster:ClearAllPoints()
     local p = FG.db.fensterPos
-    if p then fenster:SetPoint(p[1], UIParent, p[2], p[3], p[4]) else fenster:SetPoint("CENTER", 0, 60) end
+    if p then fenster:SetPoint(p[1], UIParent, p[2], p[3], p[4]) else fenster:SetPoint("CENTER", 0, 40) end
     fenster:Show()
   end
   self:Auffrischen()
-  for _, r in ipairs(REITER) do
-    if r[1] == aktuell then FG:Sprechen("Forever Harvest: " .. r[2]) end
-  end
+  FG:Sprechen("Forever Harvest: " .. TitelVon(aktuell))
 end
 
 function Fe:Schliessen() if fenster then fenster:Hide() end end

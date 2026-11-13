@@ -140,8 +140,8 @@ function Kf:Auffrischen()
   rahmen:SetScale(FG:Groesse())
   local kampf = FG.db.kampfAusblenden and UnitAffectingCombat and UnitAffectingCombat("player")
   rahmen:SetAlpha(kampf and 0.3 or 1)
-  local k = FG.db.kontrast and 1 or 0.8
-  rahmen.rand:SetColorTexture(0.3 * k, 0.25 * k, 0.1 * k, 1)
+  local a = FG.farben.akzent
+  rahmen.rand:SetColorTexture(a[1], a[2], a[3], FG.db.kontrast and 0.9 or 0.45)
   flaeche.hg:SetColorTexture(0.06, 0.06, 0.08, FG:Deckkraft(0.85))
   rahmen.zoom:SetText(P:MeterText(2 * (FG.db.kartenfensterZoom or 250)))
 

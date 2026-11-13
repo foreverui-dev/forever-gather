@@ -15,8 +15,20 @@ FG.farben = {
   grau  = { 0.55, 0.55, 0.55 },
   gruen = { 0.45, 0.85, 0.45 },
   rot   = { 0.90, 0.35, 0.30 },
+  akzent = { 0.95, 0.77, 0.35 },  -- Akzentfarbe der Oberfläche, wird live geändert
 }
 FG.gold = "|cfff2c45a"
+FG.DISCORD = "https://discord.gg/Sh8zyYUKRX"
+
+-- Akzentfarben wie in allen ForeverUI-Addons; „klasse“ nimmt die Farbe der eigenen Klasse.
+FG.AKZENTE = {
+  { "gold", "Gold", { 0.95, 0.77, 0.35 } },
+  { "klasse", "Klasse" },
+  { "eis", "Eis", { 0.45, 0.78, 0.98 } },
+  { "glut", "Glut", { 0.98, 0.45, 0.25 } },
+  { "wald", "Wald", { 0.45, 0.85, 0.50 } },
+  { "silber", "Silber", { 0.82, 0.84, 0.88 } },
+}
 
 FG.STANDARD = {
   eingerichtet = false,
@@ -71,6 +83,8 @@ FG.STANDARD = {
   minimapKnopf = true,
   minimapWinkel = 200,
   fensterPos = nil,
+  fensterGroesse = nil,     -- { Breite, Höhe } des Hauptfensters
+  akzent = "gold",
   -- Barrierefreiheit
   vorlesen = false,
   kontrast = false,
@@ -97,6 +111,23 @@ function FG:BarrierefreiAnwenden()
   setze(f.grau, db.kontrast and { 0.82, 0.82, 0.82 } or BASIS.grau)
   setze(f.gruen, db.farbenblind and { 0.35, 0.65, 1 } or BASIS.gruen)
   setze(f.rot, db.farbenblind and { 1, 0.6, 0.1 } or BASIS.rot)
+  self:AkzentAnwenden()
+end
+
+function FG:AkzentAnwenden()
+  local wahl = (self.db and self.db.akzent) or "gold"
+  local farbe = self.AKZENTE[1][3]
+  for _, a in ipairs(self.AKZENTE) do
+    if a[1] == wahl then
+      if a[3] then farbe = a[3]
+      else
+        local klasse = UnitClass and select(2, UnitClass("player"))
+        local c = klasse and RAID_CLASS_COLORS and RAID_CLASS_COLORS[klasse]
+        if c then farbe = { c.r, c.g, c.b } end
+      end
+    end
+  end
+  setze(self.farben.akzent, farbe)
 end
 
 function FG:Groesse() return (self.db and self.db.allesGroesser) and 1.25 or 1 end
@@ -409,6 +440,7 @@ local HILFE = {
   L"/fg einstellungen – alle Einstellungen",
   L"/fg diagnose | fehler – technische Infos für Fehlerberichte",
 }
+FG.HILFE = HILFE
 
 local ALIAS = {
   settings = "einstellungen", options = "einstellungen", errors = "fehler", language = "sprache",

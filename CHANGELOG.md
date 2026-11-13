@@ -2,6 +2,10 @@
 
 ## 0.3.0
 
+- Neues Aussehen im einheitlichen ForeverUI-Stil: Seitenleiste mit Gruppen (Sammeln, Funktionen, Darstellung, Zugang, Hilfe), Inhaltskasten, Suche „Einstellung suchen …“, Fenster in der Größe veränderbar.
+- Akzentfarbe wählbar: Gold, Klasse, Eis, Glut, Wald, Silber, wirkt sofort.
+- Neue Seiten „Bedienung“ (Befehle und Discord-Link zum Kopieren) und „Fehler melden“ (Fehlerprotokoll zum Kopieren, Diagnose).
+- Jede Einstellungsseite hat „Seite zurücksetzen“.
 - Das Fehlerprotokoll beginnt mit jeder neuen Version leer. Alte, längst behobene Einträge (z. B. der Tooltip-Fehler „secret keys“ aus 0.1) tauchen nicht mehr als aktuelle Fehler auf. `/fg fehler leeren` leert es von Hand.
 - Neues Kartenfenster: eine kleine Karte der Gegend in einem eigenen, verschiebbaren Fenster. Sie zeigt deine Position mit Blickrichtung, alle Fundorte und Routen als Linien. Mit dem Mausrad zoomst du, ein Klick auf einen Fundort setzt einen Wegpunkt. Öffnen mit `/fg karte`, dem Knopf in der Übersicht oder einem Tastenkürzel. Liefert das Spiel kein Kartenbild, zeigt das Fenster Fundorte und Route ohne Bild.
 

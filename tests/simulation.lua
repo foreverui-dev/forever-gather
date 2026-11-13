@@ -587,8 +587,16 @@ pruefe(FG.root.diagnose and FG.root.diagnose.karte == true and #FG.root.diagnose
 pruefe(FG.sitzung.funde == 0, "Sitzung zurückgesetzt")
 for _, t in ipairs({ "fenster", "fenster", "anzeige", "anzeige", "naechster", "route", "weiter", "route", "aufnahme", "aufnahme", "vorlesen", "sitzung", "sitzung", "radar", "radar", "merken", "einstellungen" }) do FG:Taste(t) end
 local Fe = FG.Fenster
-for _, s in ipairs({ "start", "karte", "routen", "lager", "statistik", "teilen", "hilfen", "einstellungen" }) do Fe:Oeffnen(s) end
+for _, s in ipairs({ "start", "karte", "routen", "lager", "statistik", "teilen", "hilfen", "darstellung", "zugang", "bedienung", "fehler", "einstellungen" }) do Fe:Oeffnen(s) end
 pruefe(ForeverGatherFenster:IsShown(), "alle Reiter geöffnet")
+pruefe(ForeverGatherFenster.titel.text == "Anzeige und Farben", "/fg einstellungen öffnet die Darstellung")
+local gefunden = Fe.Suchen("kontrast")
+pruefe(gefunden and gefunden[2] == "zugang" and ForeverGatherFenster.titel.text == "Barrierefreiheit und Profil", "Suche findet „Hoher Kontrast“ auf der Seite Barrierefreiheit")
+FG.db.akzent = "eis"; FG:AkzentAnwenden()
+pruefe(math.abs(FG.farben.akzent[1] - 0.45) < 0.001, "Akzentfarbe wechselt ohne /reload")
+FG.db.akzent = "klasse"; FG:AkzentAnwenden()
+pruefe(math.abs(FG.farben.akzent[2] - 0.49) < 0.001, "Akzent „Klasse“ nimmt die Klassenfarbe")
+FG.db.akzent = "gold"; FG:AkzentAnwenden()
 -- Listen bedienen
 Fe:Oeffnen("karte")
 Fe.kartenArt = "kraut"; Fe:Auffrischen()
