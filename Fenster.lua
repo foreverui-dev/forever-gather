@@ -17,11 +17,11 @@ local bautSeite       -- Seite, die gerade gebaut wird
 -- Seitenleiste im ForeverUI-Stil: Gruppen mit Einträgen.
 local GRUPPEN = {
   { L"Sammeln", { { "start", L"Übersicht" }, { "karte", L"Karte" }, { "routen", L"Routen" },
-    { "lager", L"Lager" }, { "statistik", L"Statistik" } } },
-  { L"Funktionen", { { "teilen", L"Teilen" }, { "hilfen", L"Hilfen" } } },
-  { L"Darstellung", { { "darstellung", L"Anzeige und Farben" } } },
+    { "lager", L"Lager" }, { "fortschritt", L"Fortschritt" }, { "statistik", L"Statistik" }, { "chronik", L"Chronik" } } },
+  { L"Funktionen", { { "teilen", L"Teilen" }, { "hilfen", L"Hilfen" }, { "komfort", L"Komfort und Routen" } } },
+  { L"Darstellung", { { "darstellung", L"Anzeige und Farben" }, { "hervorheben", L"Hervorheben" } } },
   { L"Zugang", { { "zugang", L"Barrierefreiheit und Profil" } } },
-  { L"Hilfe", { { "bedienung", L"Bedienung" }, { "fehler", L"Fehler melden" } } },
+  { L"Hilfe", { { "neuigkeiten", L"Neuigkeiten" }, { "bedienung", L"Bedienung" }, { "fehler", L"Fehler melden" } } },
 }
 local REITER = {}
 for _, g in ipairs(GRUPPEN) do for _, r in ipairs(g[2]) do REITER[#REITER + 1] = r end end
@@ -429,7 +429,9 @@ bauen.lager = function(s)
     z.links:SetText(e.name)
     local _, liste = La:Bestand(e.item)
     local ziel = FG.char.ziele[e.item]
+    local d = La:Veraenderung(e.item, e.menge)
     z.rechts:SetText(FG.Einzahl(L"%d auf %d Charakteren":format(e.menge, #liste))
+      .. ((d and d ~= 0) and (" · " .. L"seit gestern %s%d":format(d > 0 and "+" or "", d)) or "")
       .. (ziel and (" · " .. L"Ziel %d/%d":format(math.min(FG.Extras:Stand(e.item), ziel), ziel)) or ""))
   end, function(e, taste)
     if taste == "RightButton" then FG.Extras:ZielFragen(e.item); return end
@@ -448,6 +450,12 @@ bauen.lager = function(s)
   local hinweis = Text(s, "GameFontDisableSmall", L"Taschen werden immer gezählt, die Bank, sobald du sie öffnest. "
     .. L"Jeder Charakter erscheint, nachdem du dich einmal mit ihm eingeloggt hast.", BREITE - 40)
   hinweis:SetPoint("TOPLEFT", 0, -292)
+  local wert = Text(s, "GameFontHighlight", "", BREITE - 40)
+  wert:SetPoint("TOPLEFT", 0, -326)
+  merke({ Auffrischen = function()
+    local w = La:Gesamtwert()
+    wert:SetText(w > 0 and L"Wert aller Materialien: %s":format(FG:GeldText(w)) or "")
+  end })
 end
 
 bauen.teilen = function(s)
@@ -736,6 +744,197 @@ end
 ---------------------------------------------------------------------------
 -- Fenster
 ---------------------------------------------------------------------------
+-- Zahl mit – und + einstellen
+local function Stellen(eltern, titelFn, minus, plus)
+  local t = Text(eltern, "GameFontHighlight", "", 230)
+  local m = Knopf(eltern, "–", 26, function() minus(); FG:Anwenden() end)
+  local p = Knopf(eltern, "+", 26, function() plus(); FG:Anwenden() end)
+  m:SetPoint("LEFT", t, "RIGHT", 6, 0)
+  p:SetPoint("LEFT", m, "RIGHT", 4, 0)
+  merke({ Auffrischen = function() t:SetText(titelFn()) end })
+  return t
+end
+local function Begrenzt(schluessel, schritt, min, max)
+  return function() FG.db[schluessel] = math.max(min, math.min(max, (FG.db[schluessel] or 0) + schritt)) end
+end
+
+bauen.hervorheben = function(s)
+  local liste = {
+    { L"Nahe Vorkommen pulsieren", L"Symbole in Reichweite werden größer und kleiner.", "puls" },
+    { L"Leuchtrahmen", L"Rahmen um das nächste Vorkommen auf der Minikarte.", "leuchtring" },
+    { L"Richtungspfeil", L"Pfeil am Minikartenrand zum nächsten Vorkommen.", "richtungspfeil" },
+    { L"Hinweis am Bildschirm", L"Name, Entfernung und Richtung oben in der Mitte.", "nahHinweis" },
+    { L"Rand bei Seltenem", L"Der Bildschirmrand leuchtet, wenn Seltenes in der Nähe ist.", "seltenRand" },
+    { L"HUD", L"Durchsichtige Kreiskarte in der Bildschirmmitte, vorne ist oben.", "hud" },
+    { L"Punkte-Markierung", L"Kleiner Punkt am Symbol, wenn es Fertigkeitspunkte bringt.", "punkteMarke" },
+    { L"Reichweitenkreis", L"Kreis im Kartenfenster für die Pulsweite.", "reichweitenKreis" },
+  }
+  for i, e in ipairs(liste) do
+    local f = DbSchalter(s, e[1], e[2], e[3])
+    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -math.floor((i - 1) / 2) * 38)
+  end
+  local t = Text(s, "GameFontNormal", L"Farbe der Hervorhebung")
+  t:SetPoint("TOPLEFT", 0, -160)
+  for i, o in ipairs({ { "akzent", L"Akzent" }, { "art", L"Farbe der Art" }, { "weiss", L"Weiß" } }) do
+    local k = Karte(s, 120, 26, o[2], function() return (FG.db.hervorFarbe or "akzent") == o[1] end,
+      function() FG.db.hervorFarbe = o[1] end)
+    k:SetPoint("TOPLEFT", (i - 1) * 128, -180)
+  end
+  local a = Stellen(s, function() return L"Pulsweite: %d m":format(FG.db.pulsWeite or 60) end,
+    Begrenzt("pulsWeite", -10, 20, 200), Begrenzt("pulsWeite", 10, 20, 200))
+  a:SetPoint("TOPLEFT", 0, -222)
+  local b = Stellen(s, function() return L"Symbole Minikarte: %d":format(FG.db.minikartePinGroesse or 13) end,
+    Begrenzt("minikartePinGroesse", -1, 8, 24), Begrenzt("minikartePinGroesse", 1, 8, 24))
+  b:SetPoint("TOPLEFT", 300, -222)
+  local c = Stellen(s, function()
+    local w = FG.db.minikarteMaxWeite or 0
+    return w > 0 and L"Minikarte bis %d m":format(w) or L"Minikarte: alle Entfernungen"
+  end, Begrenzt("minikarteMaxWeite", -50, 0, 500), Begrenzt("minikarteMaxWeite", 50, 0, 500))
+  c:SetPoint("TOPLEFT", 0, -254)
+  local d = Stellen(s, function() return L"HUD-Größe: %d":format(FG.db.hudGroesse or 320) end,
+    Begrenzt("hudGroesse", -40, 160, 600), Begrenzt("hudGroesse", 40, 160, 600))
+  d:SetPoint("TOPLEFT", 300, -254)
+  local e = Stellen(s, function() return L"HUD-Weite: %d m":format(FG.db.hudWeite or 120) end,
+    Begrenzt("hudWeite", -20, 40, 400), Begrenzt("hudWeite", 20, 40, 400))
+  e:SetPoint("TOPLEFT", 0, -286)
+  local hinweis = Text(s, "GameFontDisableSmall", L"Vorkommen direkt in der 3D-Welt leuchten zu lassen, erlaubt das Spiel Addons nicht. "
+    .. L"Alles hier läuft über Karten und Bildschirm und ist erlaubt.", BREITE - 40)
+  hinweis:SetPoint("TOPLEFT", 0, -324)
+  local zurueck = Knopf(s, L"Seite zurücksetzen", 160, function()
+    for _, k in ipairs({ "pulsWeite", "minikartePinGroesse", "minikarteMaxWeite", "hudGroesse", "hudWeite", "hervorFarbe" }) do FG.db[k] = FG.STANDARD[k] end
+    for _, x in ipairs(liste) do FG.db[x[3]] = FG.STANDARD[x[3]] end
+    FG:Anwenden()
+  end)
+  zurueck:SetPoint("TOPLEFT", 0, -362)
+end
+
+bauen.fortschritt = function(s)
+  local Fo = FG.Fortschritt
+  local plan = Text(s, "GameFontHighlight", "", BREITE - 40)
+  plan:SetPoint("TOPLEFT", 0, 0)
+  plan:SetSpacing(3)
+  merke({ Auffrischen = function()
+    local zeilen = {}
+    for _, art in ipairs({ "kraut", "erz" }) do
+      zeilen[#zeilen + 1] = Fo:PlanerText(art)
+      local z = Fo:ZielText(art)
+      if z then zeilen[#zeilen + 1] = "   " .. z end
+    end
+    plan:SetText(table.concat(zeilen, "\n"))
+  end })
+  local t = Text(s, "GameFontNormal", L"Hier bekommst du gerade Punkte")
+  t:SetPoint("TOPLEFT", 0, -96)
+  local wohin = Liste(s, BREITE - 40, 3, 22, function() return Fo:Wohin(3) end, function(z, e)
+    z.icon:SetTexture(FG.ARTEN.kraut.symbol)
+    z.links:SetText(e.name)
+    z.rechts:SetText(L"Klick: Karte öffnen")
+  end, function(e) FG.Statistik:KarteOeffnen(e.karte) end)
+  wohin:SetPoint("TOPLEFT", 0, -114)
+  local t2 = Text(s, "GameFontNormal", L"Sammelberufe deiner Charaktere")
+  t2:SetPoint("TOPLEFT", 0, -192)
+  local chars = Liste(s, BREITE - 40, 5, 22, function() return Fo:Charaktere() end, function(z, e)
+    z.icon:SetTexture(e.kraut and FG.ARTEN.kraut.symbol or FG.ARTEN.erz.symbol)
+    z.links:SetText(e.key)
+    local teile = {}
+    if e.kraut then teile[#teile + 1] = L"Kräuterkunde" .. " " .. e.kraut end
+    if e.erz then teile[#teile + 1] = L"Bergbau" .. " " .. e.erz end
+    z.rechts:SetText(table.concat(teile, " · "))
+  end, function() end)
+  chars:SetPoint("TOPLEFT", 0, -210)
+  local tipp = Text(s, "GameFontDisableSmall", L"Fertigkeitsziel setzen: /fg fertigkeit 150 kraut. Bei den Stufen 50, 125, 200 und 275 erinnert dich das Addon an den Lehrer.", BREITE - 40)
+  tipp:SetPoint("TOPLEFT", 0, -332)
+end
+
+bauen.chronik = function(s)
+  local Ch = FG.Chronik
+  local kopf = Text(s, "GameFontHighlight", "", BREITE - 40)
+  kopf:SetPoint("TOPLEFT", 0, 0)
+  kopf:SetSpacing(3)
+  merke({ Auffrischen = function()
+    local r = FG.root.rekorde or {}
+    local zeilen = { Ch:WocheText() }
+    local tag = Ch:BesterTag()
+    if tag then zeilen[#zeilen + 1] = FG.Einzahl(L"Bester Tag: %s mit %d Funden":format(FG.Statistik:TagText(tag.tag), tag.funde)) end
+    if r.proStunde then zeilen[#zeilen + 1] = L"Rekord: %s Stück pro Stunde":format(FG:ZahlText(r.proStunde)) end
+    if r.wert then zeilen[#zeilen + 1] = L"Wertvollste Sitzung: %s":format(FG:GeldText(r.wert)) end
+    local top = {}
+    for i, e in ipairs(Ch:TopMaterialien(3)) do top[i] = e.name end
+    if top[1] then zeilen[#zeilen + 1] = L"Am meisten gesammelt: %s":format(table.concat(top, ", ")) end
+    local rl = FG.Routen:Rangliste()
+    if rl[1] then zeilen[#zeilen + 1] = L"Beste Route: %s (%s Stück pro Stunde)":format(rl[1].r.name, FG:ZahlText(rl[1].proStunde)) end
+    local b = FG.Teilen:Beitraege()
+    if b[1] then zeilen[#zeilen + 1] = FG.Einzahl(L"Am meisten geteilt: %s (%d Fundorte)":format(b[1].name, b[1].anzahl)) end
+    kopf:SetText(table.concat(zeilen, "\n"))
+  end })
+  local t = Text(s, "GameFontNormal", L"Letzte Sitzungen")
+  t:SetPoint("TOPLEFT", 0, -122)
+  local l = Liste(s, BREITE - 40, 5, 22, function() return FG.root.sitzungen or {} end, function(z, e)
+    z.icon:SetTexture(FG.ARTEN.kraut.symbol)
+    z.links:SetText(e.datum .. (e.karte and (" · " .. e.karte) or ""))
+    z.rechts:SetText(FG.Einzahl(L"%d Funde · %d Stück · %s":format(e.funde, e.stueck, FG:ZeitText(e.dauer))))
+  end, function() end)
+  l:SetPoint("TOPLEFT", 0, -140)
+  local t2 = Text(s, "GameFontNormal", L"Bericht der Sitzung zum Kopieren")
+  t2:SetPoint("TOPLEFT", 0, -258)
+  local feld = KopierFeld(s, BREITE - 60, 90)
+  feld:SetPoint("TOPLEFT", 0, -276)
+  merke({ Auffrischen = function() feld.Setzen(Ch:BerichtText()) end })
+end
+
+bauen.komfort = function(s)
+  local liste = {
+    { L"Sammelkette", L"Nach dem Sammeln Wegpunkt zum nächsten Vorkommen.", "kette" },
+    { L"Ruhe in Städten", L"Keine Ansagen in Städten und Gasthäusern.", "ruheInStaedten" },
+    { L"Ruhe im Kampf", L"Keine Ansagen während eines Kampfs.", "kampfRuhe" },
+    { L"Tipp des Tages", L"Ein Tipp zur Bedienung nach dem Einloggen.", "tipps" },
+    { L"Neue Sorten melden", L"Wenn deine Fertigkeit eine neue Sorte freischaltet.", "neueSorten" },
+    { L"Lehrer-Hinweise", L"Bei 50, 125, 200 und 275 und an der Grenze.", "lehrerHinweis" },
+    { L"Leere Punkte überspringen", L"Routen springen über gerade abgeerntete Punkte.", "routeLeerUeberspringen" },
+    { L"Routen nur abbaubar", L"Neue Routen nur durch Vorkommen, die du abbauen kannst.", "routeNurAbbaubar" },
+    { L"Route im Kampf pausieren", L"Die Rundenzeit läuft im Kampf nicht weiter.", "routeKampfPause" },
+    { L"Rekorde ansagen", L"Meldung bei einem neuen Sitzungsrekord.", "rekordAnsage" },
+  }
+  for i, e in ipairs(liste) do
+    local f = DbSchalter(s, e[1], e[2], e[3])
+    f:SetPoint("TOPLEFT", ((i - 1) % 2) * 300, -math.floor((i - 1) / 2) * 38)
+  end
+  local a = Stellen(s, function()
+    local n = FG.db.taschenWarnung or 0
+    return n > 0 and L"Taschen-Warnung ab %d freien Plätzen":format(n) or L"Taschen-Warnung aus"
+  end, Begrenzt("taschenWarnung", -1, 0, 10), Begrenzt("taschenWarnung", 1, 0, 10))
+  a:SetPoint("TOPLEFT", 0, -200)
+  local b = Stellen(s, function()
+    local n = FG.db.abseitsWeite or 0
+    return n > 0 and L"Hinweis abseits der Route ab %d m":format(n) or L"Hinweis abseits der Route aus"
+  end, Begrenzt("abseitsWeite", -100, 0, 1000), Begrenzt("abseitsWeite", 100, 0, 1000))
+  b:SetPoint("TOPLEFT", 0, -232)
+  local timer = Text(s, "GameFontHighlight", "", 300)
+  timer:SetPoint("TOPLEFT", 0, -270)
+  merke({ Auffrischen = function()
+    local rest = FG.Komfort:TimerRest()
+    timer:SetText(rest and L"Sammel-Timer: noch %s":format(FG:ZeitText(rest)) or L"Sammel-Timer aus")
+  end })
+  local k1 = Knopf(s, L"Timer 30 Min.", 140, function() FG.Komfort:TimerStarten(30) end)
+  k1:SetPoint("TOPLEFT", 300, -266)
+  local k2 = Knopf(s, L"Timer aus", 120, function() FG.Komfort:TimerStarten(0) end)
+  k2:SetPoint("LEFT", k1, "RIGHT", 6, 0)
+  local k3 = Knopf(s, L"Rückgängig", 140, function() FG.Komfort:Rueckgaengig() end)
+  k3:SetPoint("TOPLEFT", 0, -304)
+  local k4 = Knopf(s, L"Sicherung zurückholen", 180, function() FG.Komfort:Wiederherstellen() end)
+  k4:SetPoint("LEFT", k3, "RIGHT", 6, 0)
+  local tipp = Text(s, "GameFontDisableSmall", L"Rückgängig holt den zuletzt gelöschten Fundort zurück. Vor dem Aufräumen und vor dem Löschen einer ganzen Sorte legt das Addon eine Sicherung an. "
+    .. L"Funde bestimmter Spieler ignorierst du mit /fg sperren Name.", BREITE - 40)
+  tipp:SetPoint("TOPLEFT", 0, -338)
+end
+
+bauen.neuigkeiten = function(s)
+  local t = Text(s, "GameFontNormal", L"Neu in Version 0.4")
+  t:SetPoint("TOPLEFT", 0, 0)
+  local feld = KopierFeld(s, BREITE - 60, 330)
+  feld:SetPoint("TOPLEFT", 0, -20)
+  merke({ Auffrischen = function() feld.Setzen(table.concat(FG:Neuigkeiten(), "\n")) end })
+end
+
 local function Flaeche(f, ebene, r, g, b, a)
   local t = f:CreateTexture(nil, ebene or "BACKGROUND")
   t:SetColorTexture(r, g, b, a)

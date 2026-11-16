@@ -15,6 +15,11 @@ Kräuter, Erze und Schätze auf Welt- und Minikarte für WoW Forever. Teil der F
 - **Kartenfenster:** kleine, frei verschiebbare Karte der Gegend mit deiner Position, allen Fundorten und der Route als Linie. Mausrad zoomt, Klick auf einen Fundort setzt einen Wegpunkt.
 - **Radar und Ziele:** Fenster mit den nächsten Fundorten samt Pfeil, Sammelziele mit Fortschritt, Fertigkeitspunkte in Spielfarben mit Wort, beste Gegenden für deinen Charakter, Statistik der letzten Tage.
 - **Seltenes:** Schwarzer Lotus, Silber, Gold und Co. hervorgehoben, Alarm in der Nähe oder wenn die Gruppe eins findet.
+- **Hervorheben:** Nahe Vorkommen pulsieren auf Minikarte und Kartenfenster, Leuchtrahmen und Richtungspfeil zum nächsten Vorkommen, Hinweis oben am Bildschirm, leuchtender Bildschirmrand bei Seltenem und ein durchsichtiges HUD in der Bildschirmmitte (`/fg hud`). Alles über Karten und Bildschirm, ohne Eingriff ins Spiel.
+- **Fortschritt:** Planer für die nächsten Fertigkeitspunkte, beste Gegenden dafür, Lehrer-Hinweise, Warnung an der Fertigkeitsgrenze und Fertigkeitsziele.
+- **Chronik:** die letzten 20 Sitzungen, Rekorde, Wochenvergleich, bester Tag, Ertrag und Zusatzbeute je Vorkommen.
+- **Komfort:** Warnung bei vollen Taschen, Sammel-Timer, Ruhe in Städten und im Kampf, Notizen an Fundorten, Rückgängig, Sicherung vor dem Aufräumen, Sammelkette.
+- **Englisch:** Das Addon spricht Deutsch und Englisch und folgt der Spielsprache (`/fg sprache en`).
 - **Barrierefreiheit:** Vorlesen, nahe Fundorte mit Entfernung und Richtung ansagen, hoher Kontrast, Farbenblind-Modus, alles größer, weniger Bewegung, Tastenkürzel für alle Funktionen.
 
 ## Bilder
@@ -60,6 +65,19 @@ Kräuter, Erze und Schätze auf Welt- und Minikarte für WoW Forever. Teil der F
 | `/fg ziel 40 Friedensblume` | Sammelziel setzen |
 | `/fg statistik` | Tage, Gesamtmengen, beste Gegend |
 | `/fg vorlesen` | nahe Fundorte vorlesen |
+| `/fg hud` | HUD in der Bildschirmmitte ein oder aus |
+| `/fg planer` | was gerade Fertigkeitspunkte bringt |
+| `/fg wohin` | Gegenden mit Fertigkeitspunkten |
+| `/fg fertigkeit 150 kraut` | Fertigkeitsziel setzen |
+| `/fg chronik` | letzte Sitzungen und Wochenvergleich |
+| `/fg timer 30` | Sammel-Timer in Minuten |
+| `/fg selten` | Wegpunkt zum nächsten seltenen Vorkommen |
+| `/fg zielort` | Wegpunkt zum Vorkommen für ein Sammelziel |
+| `/fg rueckgaengig` | gelöschten Fundort zurückholen |
+| `/fg wiederherstellen` | Sicherung vor dem Aufräumen zurückholen |
+| `/fg sperren Name` | Funde eines Spielers ignorieren |
+| `/fg beitraege` | wer wie viele Fundorte geteilt hat |
+| `/fg sprache en` | Sprache umschalten (de, en) |
 | `/fg diagnose` | technische Infos für Fehlerberichte |
 
 ## Erste Schritte

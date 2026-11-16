@@ -68,6 +68,8 @@ function W:FundTooltip(besitzer, karte, f)
   end
   if f.n and f.n > 0 then GameTooltip:AddLine(L"%d-mal gesammelt, zuletzt %s":format(f.n, FG:AlterText(f.z)), 0.8, 0.8, 0.8) end
   if f.q then GameTooltip:AddLine(L"Geteilt von %s":format(f.q), 0.6, 0.75, 1) end
+  if f.notiz then GameTooltip:AddLine(L"Notiz: %s":format(f.notiz), 1, 1, 0.6, true) end
+  if FG.Chronik then FG.Chronik:TooltipZeilen(GameTooltip, f.t) end
   local pk, px, py = P:Spieler()
   if pk == karte then
     local m = P:Entfernung(karte, px, py, f.x, f.y)
@@ -78,10 +80,15 @@ function W:FundTooltip(besitzer, karte, f)
   GameTooltip:AddLine(L"Rechtsklick: Fundort löschen", 0.6, 0.6, 0.6)
   GameTooltip:AddLine(L"Umschalt+Rechtsklick: diese Sorte ausblenden", 0.6, 0.6, 0.6)
   GameTooltip:AddLine(L"Strg+Klick: Favorit", 0.6, 0.6, 0.6)
+  GameTooltip:AddLine(L"Alt+Klick: Notiz · Alt+Rechtsklick: 1 Std. ausblenden", 0.6, 0.6, 0.6)
   GameTooltip:Show()
 end
 
 function W:FundKlick(karte, f, taste)
+  if IsAltKeyDown and IsAltKeyDown() and FG.Komfort then
+    if taste == "RightButton" then FG.Komfort:Ausblenden(f, 3600) else FG.Komfort:NotizFragen(f) end
+    return
+  end
   if taste ~= "RightButton" and IsControlKeyDown and IsControlKeyDown() then
     FG.Extras:Favorit(karte, f)
     return
@@ -127,6 +134,8 @@ local function NeuerPin(eltern, i, liste)
   p.icon = p:CreateTexture(nil, "ARTWORK")
   p.icon:SetAllPoints()
   p.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  p.stufenPunkt = p:CreateTexture(nil, "OVERLAY")
+  p.stufenPunkt:SetPoint("TOPRIGHT", 2, 2)
   p:RegisterForClicks("LeftButtonUp", "RightButtonUp")
   liste[i] = p
   return p
@@ -149,6 +158,18 @@ function W:PinGestalten(p, f, groesse)
   local leer = F:Abgeerntet(f)
   if p.icon.SetDesaturated then p.icon:SetDesaturated(not geht or leer and true or false) end
   p:SetAlpha((leer and 0.35) or (geht and 1) or 0.55)
+  -- kleiner Punkt in der Ecke: bringt noch Fertigkeitspunkte (Farbe wie im Spiel)
+  if p.stufenPunkt then
+    local stufe = FG.db.punkteMarke and F.Farbstufe and F:Farbstufe(f.t)
+    if stufe == "orange" or stufe == "gelb" or stufe == "gruen" then
+      local r, g, b = FG:StufenFarbe(stufe)
+      p.stufenPunkt:SetSize(math.max(4, groesse * 0.35), math.max(4, groesse * 0.35))
+      p.stufenPunkt:SetColorTexture(r, g, b, 1)
+      p.stufenPunkt:Show()
+    else
+      p.stufenPunkt:Hide()
+    end
+  end
 end
 
 local function Zeichnen()

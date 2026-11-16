@@ -7,7 +7,7 @@ local metadaten = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
 FG.version = (metadaten and metadaten(ADDON, "Version")) or "dev"
 if FG.version:find("@") then FG.version = "dev" end
 -- Wird bei jeder Fehlerbehebung erhöht, damit alte Einträge aus dem Fehlerprotokoll verschwinden.
-FG.CODESTAND = 3
+FG.CODESTAND = 4
 
 FG.farben = {
   gold  = { 0.95, 0.77, 0.35 },
@@ -72,6 +72,37 @@ FG.STANDARD = {
   kartenfensterPos = nil,
   kartenfensterGroesse = 200,
   kartenfensterZoom = 250,  -- halbe Breite der Ansicht in Metern
+  -- 0.4: Hervorheben
+  puls = true,              -- nahe Vorkommen pulsieren
+  pulsWeite = 60,
+  leuchtring = true,        -- Leuchtrahmen um das nächste Vorkommen auf der Minikarte
+  richtungspfeil = true,    -- Pfeil am Minikartenrand zum nächsten Vorkommen
+  nahHinweis = false,       -- Name, Entfernung und Richtung oben am Bildschirm
+  nahWeite = 60,
+  seltenRand = true,        -- Bildschirmrand leuchtet bei Seltenem in der Nähe
+  seltenWeite = 100,
+  hervorFarbe = "akzent",   -- akzent | art | weiss
+  hud = false,              -- Kreiskarte in der Bildschirmmitte
+  hudGroesse = 320,
+  hudWeite = 120,
+  hudDeckkraft = 0.7,
+  reichweitenKreis = true,  -- Kreis im Kartenfenster
+  punkteMarke = true,       -- Punkt am Symbol, wenn es Fertigkeitspunkte bringt
+  minikarteMaxWeite = 0,    -- nur Vorkommen bis zu dieser Entfernung (0 = alle)
+  -- 0.4: Fortschritt, Chronik, Komfort, Routen
+  neueSorten = true,
+  lehrerHinweis = true,
+  rekordAnsage = true,
+  sitzungsEnde = true,
+  taschenWarnung = 2,       -- Warnung ab so wenigen freien Plätzen (0 = aus)
+  ruheInStaedten = true,
+  kampfRuhe = true,
+  tipps = true,
+  kette = false,            -- nach dem Sammeln Wegpunkt zum nächsten Vorkommen
+  routeLeerUeberspringen = true,
+  routeNurAbbaubar = false,
+  routeKampfPause = true,
+  abseitsWeite = 400,       -- Hinweis, wenn du so weit von der Route weg bist (0 = aus)
   klang = false,            -- Klang, wenn ein Fundort in Reichweite kommt
   kampfAusblenden = true,   -- im Kampf keine Symbole auf der Minikarte
   seltenHervorheben = true, -- seltene Vorkommen größer
@@ -556,6 +587,9 @@ BINDING_NAME_FOREVERGATHER_EINSTELLUNGEN = L"Einstellungen öffnen"
 BINDING_NAME_FOREVERGATHER_RADAR = L"Radar ein oder aus"
 BINDING_NAME_FOREVERGATHER_MERKEN = L"Vorkommen unter der Maus merken"
 BINDING_NAME_FOREVERGATHER_KARTENFENSTER = L"Kartenfenster ein oder aus"
+BINDING_NAME_FOREVERGATHER_HUD = L"HUD ein oder aus"
+BINDING_NAME_FOREVERGATHER_SELTEN = L"Wegpunkt zum nächsten seltenen Vorkommen"
+BINDING_NAME_FOREVERGATHER_ZIELORT = L"Wegpunkt zum nächsten Vorkommen für ein Ziel"
 
 FG.tasten = {}
 function FG:Taste(was)

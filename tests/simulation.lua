@@ -587,7 +587,195 @@ pruefe(FG.root.diagnose and FG.root.diagnose.karte == true and #FG.root.diagnose
 pruefe(FG.sitzung.funde == 0, "Sitzung zurückgesetzt")
 for _, t in ipairs({ "fenster", "fenster", "anzeige", "anzeige", "naechster", "route", "weiter", "route", "aufnahme", "aufnahme", "vorlesen", "sitzung", "sitzung", "radar", "radar", "merken", "einstellungen" }) do FG:Taste(t) end
 local Fe = FG.Fenster
-for _, s in ipairs({ "start", "karte", "routen", "lager", "statistik", "teilen", "hilfen", "darstellung", "zugang", "bedienung", "fehler", "einstellungen" }) do Fe:Oeffnen(s) end
+---------------------------------------------------------------------------
+print("-- 0.4: Hervorheben")
+local H, Fo, Ch, Ko = FG.Hervorheben, FG.Fortschritt, FG.Chronik, FG.Komfort
+local alteMinuten = FG.db.abgeerntetMinuten
+FG.db.abgeerntetMinuten = 0
+imKampf = false
+local nf = F:Liste(KARTE)[1]
+Gehe(nf.x, nf.y); Meter(20, 0)
+M.Takt()
+pruefe(M.naechster and M.naechsterM and M.naechsterM <= 60, "nächstes Vorkommen bestimmt: " .. tostring(M.naechsterM))
+local puls = H:Puls(M.naechster, M.naechsterM)
+pruefe(puls >= 1 and puls <= 1.25 and H:Puls(M.naechster, 500) == 1, "nahe Vorkommen pulsieren, ferne nicht")
+FG.db.wenigerBewegung = true
+pruefe(H:Puls(M.naechster, 10) == 1.25, "weniger Bewegung: nur größer, kein Pulsieren")
+FG.db.wenigerBewegung = false
+pruefe(H.ring and H.ring:IsShown(), "Leuchtrahmen um das nächste Vorkommen")
+FG.db.nahHinweis = true
+M.Takt()
+pruefe(ForeverGatherHinweis and ForeverGatherHinweis:IsShown() and H.hinweisText and H.hinweisText:find("Uhr"), "Hinweis am Bildschirm: " .. tostring(H.hinweisText))
+FG.db.nahHinweis = false
+M.Takt()
+pruefe(not ForeverGatherHinweis:IsShown(), "Hinweis wieder aus")
+local seltenTyp = "o1733"
+local seltenFund = F:Hinzufuegen(KARTE, spieler.x + 30 / 5000, spieler.y, seltenTyp, "Anna")
+M.Takt()
+pruefe(H.seltenNah == seltenFund and ForeverGatherRand:IsShown(), "Bildschirmrand leuchtet bei Seltenem")
+FG.db.hud = true
+M.Takt()
+pruefe(ForeverGatherHUD and ForeverGatherHUD:IsShown() and (H.hudAnzahl or 0) >= 1, "HUD zeigt Fundorte: " .. tostring(H.hudAnzahl))
+local hx, hy = H:HudPunkt(0, -50, 100, 200, 0)
+pruefe(math.abs(hx) < 0.001 and math.abs(hy - 50) < 0.001, "HUD: Norden ist oben bei Blick nach Norden")
+hx, hy = H:HudPunkt(0, -50, 100, 200, math.pi / 2)
+pruefe(math.abs(hx - 50) < 0.001 and math.abs(hy) < 0.001, "HUD dreht mit: Norden rechts bei Blick nach Westen")
+pruefe(H:HudPunkt(0, -500, 100, 200, 0) == nil, "HUD: zu weit entfernt nicht gezeigt")
+imKampf = true; M.Takt()
+pruefe(not ForeverGatherHUD:IsShown(), "HUD im Kampf ausgeblendet")
+imKampf = false
+FG.db.hud = false; M.Takt()
+pruefe(math.abs(H.PfeilWinkel(10, 0) + math.pi / 2) < 0.001 and H.PfeilWinkel(0, 10) == 0, "Richtungspfeil zeigt in die richtige Richtung")
+local tp = W.NeuerPin(UIParent, 1, {})
+W:PinGestalten(tp, { t = "o1620", x = 0.5, y = 0.5 }, 16)
+pruefe(tp.stufenPunkt:IsShown(), "Punkte-Markierung bei orangem Vorkommen")
+W:PinGestalten(tp, { t = "o1621", x = 0.5, y = 0.5 }, 16)
+pruefe(not tp.stufenPunkt:IsShown(), "keine Markierung, wenn es keine Punkte bringt")
+FG.db.minikarteMaxWeite = 30
+M.Takt()
+local nahe = M.anzahl
+FG.db.minikarteMaxWeite = 0
+M.Takt()
+pruefe(nahe < M.anzahl, "Minikarte nur bis zu einer Entfernung")
+FG.befehle.karte("")
+FG.Kartenfenster:Auffrischen()
+pruefe((FG.Kartenfenster.kreis or 0) > 0, "Reichweitenkreis im Kartenfenster")
+FG.befehle.karte("")
+
+print("-- 0.4: Fortschritt")
+local plan = Fo:Planer("kraut")
+pruefe(#plan.punkte >= 2 and plan.naechste == "o1621", "Planer: Punkte jetzt, Wilddornrose als Nächstes")
+pruefe(Fo:PlanerText("kraut"):find("Wilddornrose"), "Planer-Text nennt die nächste Sorte")
+local wohin = Fo:Wohin(3)
+pruefe(wohin[1] and wohin[1].karte == KARTE, "Gegend-Empfehlung: Durotar")
+Fo:ZielSetzen("kraut", 70)
+FG.sitzung.punkte = 0
+local alarmeVorher = #alarme
+berufe[1][2] = 75
+Ereignis("SKILL_LINES_CHANGED")
+pruefe(FG.sitzung.punkte == 15, "Sitzung zählt 15 Fertigkeitspunkte")
+local text = table.concat(chat, "\n")
+pruefe(text:find("Ab jetzt kannst du Wilddornrose sammeln"), "neue Sorte freigeschaltet")
+local at = table.concat(alarme, "\n", alarmeVorher + 1)
+pruefe(at:find("Fertigkeitsziel erreicht") and at:find("Grenze erreicht"), "Ziel erreicht und Grenze gemeldet")
+berufe[1][2] = 45; Ereignis("SKILL_LINES_CHANGED")
+berufe[1][2] = 52; Ereignis("SKILL_LINES_CHANGED")
+pruefe(table.concat(chat, "\n"):find("Beim Lehrer"), "Lehrer-Hinweis bei 50")
+berufe[1][2] = 60; Ereignis("SKILL_LINES_CHANGED")
+pruefe(#Fo:Charaktere() >= 1, "Sammelberufe der Charaktere")
+
+print("-- 0.4: Chronik")
+local vorher = #FG.root.sitzungen
+FG.sitzung.funde = FG.sitzung.funde + 3
+FG.sitzung.items[2447] = (FG.sitzung.items[2447] or 0) + 6
+local funde = FG.sitzung.funde
+F:SitzungNeu()
+pruefe(#FG.root.sitzungen == vorher + 1 and FG.root.sitzungen[1].funde == funde, "Sitzung im Verlauf gespeichert")
+pruefe((FG.root.rekorde.stueck or 0) > 0, "Rekord gespeichert")
+pruefe(table.concat(chat, "\n"):find("Sitzung beendet"), "Zusammenfassung beim Sitzungsende")
+local schnitt = Ch:Ertrag("o1618")
+pruefe(schnitt and schnitt > 0, "Stück pro Ernte: " .. tostring(schnitt))
+local _, extra = Ch:Ertrag("o1731")
+pruefe(extra and extra[1] and extra[1].item == 2835, "Zusatzbeute der Kupferader erkannt")
+local kupfer
+for _, f in ipairs(F:Liste(KARTE)) do if f.t == "o1731" then kupfer = f end end
+W:FundTooltip(UIParent, KARTE, kupfer)
+pruefe(table.concat(GameTooltip.zeilen, "\n"):find("Zusatzbeute"), "Zusatzbeute im Tooltip")
+pruefe(Ch:WocheText():find("Diese Woche"), "Wochenvergleich")
+pruefe(Ch:BesterTag() and Ch:TopMaterialien(3)[1], "bester Tag und Top-Materialien")
+pruefe(Ch:BerichtText():find("Forever Harvest"), "Bericht zum Kopieren")
+
+print("-- 0.4: Komfort")
+IsResting = function() return true end
+pruefe(Ko:Ruhig(), "Ruhe in Städten")
+IsResting = function() return false end
+imKampf = true
+pruefe(Ko:Ruhig(), "Ruhe im Kampf")
+imKampf = false
+pruefe(not Ko:Ruhig(), "draußen nicht ruhig")
+C_Container.GetContainerNumFreeSlots = function(t) return t == 0 and 1 or 0 end
+alarmeVorher = #alarme
+Ko.taschenGewarnt = nil
+pruefe(Ko:TaschenPruefen() == 1 and #alarme == alarmeVorher + 1, "Warnung bei fast vollen Taschen")
+C_Container.GetContainerNumFreeSlots = function() return 8 end
+Ko:TaschenPruefen()
+Ko:TimerStarten(1)
+pruefe(Ko:TimerRest() and Ko:TimerRest() <= 60, "Sammel-Timer läuft")
+jetzt = jetzt + 61
+Ko:TimerTakt()
+pruefe(alarme[#alarme]:find("Sammelzeit vorbei"), "Timer erinnert")
+local n0 = #F:Liste(KARTE)
+local weg = F:Liste(KARTE)[2]
+F:Entfernen(KARTE, weg)
+Ko:Rueckgaengig()
+pruefe(#F:Liste(KARTE) == n0, "Rückgängig holt den Fundort zurück")
+local a0 = F:Anzahl()
+F:TypLoeschen("o1618")
+pruefe(F:Anzahl() < a0, "Sorte gelöscht")
+Ko:Wiederherstellen()
+pruefe(F:Anzahl() == a0, "Sicherung zurückgeholt")
+nf = F:Liste(KARTE)[1]
+Ko:NotizSetzen(nf, "  Hinter dem Baum ")
+pruefe(nf.notiz == "Hinter dem Baum", "Notiz gespeichert")
+W:FundTooltip(UIParent, KARTE, nf)
+pruefe(table.concat(GameTooltip.zeilen, "\n"):find("Hinter dem Baum"), "Notiz im Tooltip")
+IsAltKeyDown = function() return true end
+W:FundKlick(KARTE, nf, "LeftButton")
+pruefe(popups[#popups][1] == "FOREVERGATHER_NOTIZ", "Alt+Klick fragt nach einer Notiz")
+W:FundKlick(KARTE, nf, "RightButton")
+pruefe(nf.bis and not F:FundSichtbar(nf), "Alt+Rechtsklick blendet für eine Stunde aus")
+IsAltKeyDown = function() return false end
+nf.bis = nil
+Ko:Sperren("rabauke")
+pruefe(Ko:Gesperrt("Rabauke"), "Spieler gesperrt")
+Ko:Sperren("Rabauke")
+pruefe(not Ko:Gesperrt("Rabauke"), "Sperre aufgehoben")
+wegpunkt = nil
+seltenFund = Ko:ZuSeltenem()
+pruefe(seltenFund and seltenFund.t == "o1733" and wegpunkt, "Wegpunkt zum nächsten seltenen Vorkommen")
+FG.char.ziele[2447] = 999
+pruefe(Ko:ZuZiel() and Ko:ZuZiel().t == "o1618", "Wegpunkt zum Vorkommen für ein Ziel")
+FG.char.ziele[2447] = nil
+FG.db.kette = true
+wegpunkt = nil
+pruefe(Ko:Kette() and wegpunkt, "Sammelkette setzt den nächsten Wegpunkt")
+FG.db.kette = false
+pruefe(Ko:Tipp(1) and Ko:Tipp(11) == Ko:Tipp(1), "Tipp des Tages")
+
+print("-- 0.4: Routen, Lager, Teilen")
+local rr = R:Liste()[1]
+rr.zeitGesamt, rr.ertragGesamt = 1800, 60
+pruefe(R:Rangliste()[1] and math.abs(R:Rangliste()[1].proStunde - 120) < 0.01, "Rangliste der Routen nach Stück pro Stunde")
+FG.db.abgeerntetMinuten = 5
+local leerRoute = { karte = KARTE, punkte = { nf.x, nf.y, 0.9, 0.9 }, name = "Test" }
+nf.g = time()
+pruefe(R:PunktLeer(leerRoute, 1) and not R:PunktLeer(leerRoute, 2), "abgeerntete Routenpunkte erkannt")
+nf.g = nil
+FG.db.abgeerntetMinuten = alteMinuten
+R:Starten(rr)
+imKampf = true; R:Takt()
+pruefe(R.pause and table.concat(chat, "\n"):find("Route pausiert"), "Route pausiert im Kampf")
+imKampf = false; R:Takt()
+pruefe(not R.pause and chat[#chat]:find("Route geht weiter") or table.concat(chat, "\n"):find("Route geht weiter"), "Route geht nach dem Kampf weiter")
+FG.db.abseitsWeite = 100
+Gehe(0.95, 0.95); R:Takt()
+pruefe(R.abseits, "Hinweis abseits der Route")
+R:Anhalten(true)
+R.abseits = nil
+FG.db.abseitsWeite = 400
+pruefe(La:Gesamtwert() > 0, "Wert aller Materialien: " .. La:Gesamtwert())
+FG.root.lagerTage["2000-01-01"] = { [2447] = 4 }
+pruefe(La:Veraenderung(2447, 10) == 6, "Veränderung seit gestern")
+local anna = false
+for _, e in ipairs(T:Beitraege()) do if e.name == "Anna" then anna = true end end
+pruefe(anna, "Beitragsliste nennt Anna")
+local nummeriert = 0
+for _, t in ipairs(FG:Neuigkeiten()) do if t:match("^%d+%.") then nummeriert = nummeriert + 1 end end
+pruefe(nummeriert == 50, "Neuigkeiten nennen 50 Funktionen")
+for _, b in ipairs({ "hud", "selten", "zielort" }) do pruefe(FG.tasten[b] ~= nil, "Tastenkürzel " .. b) end
+F:Entfernen(KARTE, seltenFund)
+
+for _, s in ipairs({ "start", "karte", "routen", "lager", "statistik", "teilen", "hilfen", "darstellung", "zugang", "bedienung", "fehler", "fortschritt", "chronik", "komfort", "hervorheben", "neuigkeiten", "einstellungen" }) do Fe:Oeffnen(s) end
 pruefe(ForeverGatherFenster:IsShown(), "alle Reiter geöffnet")
 pruefe(ForeverGatherFenster.titel.text == "Anzeige und Farben", "/fg einstellungen öffnet die Darstellung")
 local gefunden = Fe.Suchen("kontrast")
@@ -631,6 +819,7 @@ for _, datei in ipairs(toc) do
     end
   end
 end
+for _, t in ipairs(FG.NEUIGKEITEN_DE) do if not FG.EN[t] then fehlend[#fehlend + 1] = t end end
 pruefe(#fehlend == 0, "alle Texte haben eine englische Fassung" .. (fehlend[1] and (": " .. #fehlend .. " fehlen, z. B. " .. fehlend[1]) or ""))
 pruefe(#falsch == 0, "Platzhalter stimmen überein" .. (falsch[1] and (": " .. falsch[1]) or ""))
 pruefe(FG.Einzahl("1 auf 1 Charakteren") == "1 auf 1 Charakter", "Einzahl: 1 Charakter")

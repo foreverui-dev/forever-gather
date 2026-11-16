@@ -27,4 +27,9 @@ Teilen.lua
 Fenster.lua
 Radar.lua
 Kartenfenster.lua
+Hervorheben.lua
+Fortschritt.lua
+Chronik.lua
+Komfort.lua
+Neuigkeiten.lua
 MinimapKnopf.lua

@@ -35,4 +35,13 @@
   <Binding name="FOREVERGATHER_KARTENFENSTER" category="ADDONS">
     ForeverGather:Taste("kartenfenster")
   </Binding>
+  <Binding name="FOREVERGATHER_HUD" category="ADDONS">
+    ForeverGather:Taste("hud")
+  </Binding>
+  <Binding name="FOREVERGATHER_SELTEN" category="ADDONS">
+    ForeverGather:Taste("selten")
+  </Binding>
+  <Binding name="FOREVERGATHER_ZIELORT" category="ADDONS">
+    ForeverGather:Taste("zielort")
+  </Binding>
 </Bindings>

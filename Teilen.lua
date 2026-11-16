@@ -204,6 +204,7 @@ local puffer = {}
 local function Empfangen(text, kanal, absender)
   local name = Ambiguate and Ambiguate(absender, "short") or absender
   if name == UnitName("player") then return end
+  if FG.Komfort and FG.Komfort:Gesperrt(name) then return end
   local art = text:sub(1, 2)
   if art == "F~" then
     if not FG.db.empfangen then return end
@@ -293,3 +294,26 @@ end, L"/fg teilen [route] [gilde | Name] – Fundorte dieser Gegend oder Route s
 FG:Befehl({ "import" }, function(rest)
   if rest and rest ~= "" then T:Importieren(rest) else FG.Fenster:Oeffnen("teilen") end
 end, L"/fg import [Code] – geteilten Code übernehmen")
+
+-- Wer hat wie viele Fundorte beigetragen? (geteilte Funde mit Absender)
+function T:Beitraege()
+  local zaehler = {}
+  for _, liste in pairs(FG.root.fundorte) do
+    for _, f in ipairs(liste) do
+      if f.q and f.q ~= L"Import" then zaehler[f.q] = (zaehler[f.q] or 0) + 1 end
+    end
+  end
+  local liste = {}
+  for name, n in pairs(zaehler) do liste[#liste + 1] = { name = name, anzahl = n } end
+  table.sort(liste, function(a, b) if a.anzahl ~= b.anzahl then return a.anzahl > b.anzahl end return a.name < b.name end)
+  return liste
+end
+
+FG:Befehl({ "beitraege", "beiträge", "contributors" }, function()
+  local liste = T:Beitraege()
+  if #liste == 0 then FG:Meldung(L"Noch keine geteilten Fundorte."); return end
+  for i, e in ipairs(liste) do
+    if i > 10 then break end
+    DEFAULT_CHAT_FRAME:AddMessage(FG.Einzahl(("  %s: %d %s"):format(e.name, e.anzahl, L"Fundorte")))
+  end
+end, L"/fg beitraege – wer wie viele Fundorte geteilt hat")

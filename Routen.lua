@@ -115,7 +115,10 @@ end
 function R:AusFundorten(karte, art, name)
   local punkte = {}
   for _, f in ipairs(F:Liste(karte)) do
-    if F:FundSichtbar(f) and (not art or F:Art(f.t) == art) then punkte[#punkte + 1] = { f.x, f.y } end
+    if F:FundSichtbar(f) and (not art or F:Art(f.t) == art)
+      and not (FG.db.routeNurAbbaubar and F:Abbaubar(f.t) == false) then
+      punkte[#punkte + 1] = { f.x, f.y }
+    end
   end
   if #punkte < 3 then return nil, L"Für eine Route braucht es mindestens drei sichtbare Fundorte in dieser Gegend." end
   local weg = self:Rundweg(karte, punkte)
@@ -172,7 +175,29 @@ end
 ---------------------------------------------------------------------------
 -- Abfahren: Wegpunkt auf den nächsten Punkt, weiter, sobald man nah genug ist.
 ---------------------------------------------------------------------------
+-- true, wenn am Routenpunkt nur gerade abgeerntete Vorkommen liegen.
+function R:PunktLeer(r, i)
+  local x, y = r.punkte[i * 2 - 1], r.punkte[i * 2]
+  local leer = false
+  for _, f in ipairs(F:Liste(r.karte)) do
+    local m = P:Entfernung(r.karte, x, y, f.x, f.y)
+    if m and m <= 20 then
+      if not F:Abgeerntet(f) then return false end
+      leer = true
+    end
+  end
+  return leer
+end
+
 local function PunktSetzen(r, i)
+  if FG.db.routeLeerUeberspringen then
+    local n = #r.punkte / 2
+    for _ = 1, n - 1 do
+      if not R:PunktLeer(r, i) then break end
+      if R.runde then R.runde.besucht = R.runde.besucht + 1 end
+      i = (i % n) + 1
+    end
+  end
   R.index = i
   P:Wegpunkt(r.karte, r.punkte[i * 2 - 1], r.punkte[i * 2], r.name)
   FG:Rufe("routen")
@@ -222,6 +247,7 @@ function R:Weiter(rueckwaerts)
       if not r.bestzeit or dauer < r.bestzeit then r.bestzeit = dauer end
       r.ertrag = rd.stueck
       r.ertragGesamt = (r.ertragGesamt or 0) + rd.stueck
+      r.zeitGesamt = (r.zeitGesamt or 0) + dauer
       if FG.db.rundenAnsage then
         FG:Ansage(L"Runde %d geschafft: %s, %d Stück.", r.runden, FG:ZeitText(dauer), rd.stueck)
       end
@@ -244,9 +270,45 @@ function R:Takt()
   if not r then return end
   local karte, x, y = P:Spieler()
   if karte ~= r.karte then return end
+  -- im Kampf pausieren
+  local kampf = UnitAffectingCombat and UnitAffectingCombat("player")
+  if FG.db.routeKampfPause then
+    if kampf then
+      if not self.pause then self.pause = GetTime(); FG:Ansage(L"Route pausiert (Kampf).") end
+      return
+    elseif self.pause then
+      if self.runde then self.runde.start = self.runde.start + (GetTime() - self.pause) end
+      self.pause = nil
+      FG:Ansage(L"Route geht weiter.")
+      local i0 = self.index or 1
+      P:Wegpunkt(r.karte, r.punkte[i0 * 2 - 1], r.punkte[i0 * 2], r.name)
+    end
+  end
   local i = self.index or 1
   local m = P:Entfernung(karte, x, y, r.punkte[i * 2 - 1], r.punkte[i * 2])
   if m and m <= (FG.db.wegpunktAbstand or 25) then self:Weiter() end
+  -- weit weg von der Route?
+  local weit = FG.db.abseitsWeite or 0
+  if weit > 0 and m then
+    if m > weit and not self.abseits then
+      self.abseits = true
+      FG:Ansage(L"Du bist %s vom nächsten Routenpunkt entfernt.", P:MeterText(m))
+    elseif m < weit * 0.5 then
+      self.abseits = nil
+    end
+  end
+end
+
+-- Routen nach Ertrag pro Stunde (nur mit mindestens einer Runde).
+function R:Rangliste()
+  local liste = {}
+  for _, r in ipairs(self:Liste()) do
+    if (r.zeitGesamt or 0) > 0 then
+      liste[#liste + 1] = { r = r, proStunde = (r.ertragGesamt or 0) * 3600 / r.zeitGesamt }
+    end
+  end
+  table.sort(liste, function(a, b) return a.proStunde > b.proStunde end)
+  return liste
 end
 
 function R:Start()

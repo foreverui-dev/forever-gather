@@ -185,7 +185,9 @@ function Kf:Auffrischen()
       if x and math.abs(x) <= halb + 8 and math.abs(y) <= halb + 8 then
         n = n + 1
         local p = FG.Weltkarte.NeuerPin(flaeche, n, pins)
-        FG.Weltkarte:PinGestalten(p, f, pinGroesse)
+        local _, _, k = self:Punkt(karte, px, py, f.x, f.y, groesse)
+        local faktor = FG.Hervorheben and FG.Hervorheben:Puls(f, math.sqrt(x * x + y * y) / k) or 1
+        FG.Weltkarte:PinGestalten(p, f, pinGroesse * faktor)
         p:ClearAllPoints()
         p:SetPoint("CENTER", flaeche, "CENTER", x, -y)
         p:SetScript("OnEnter", function(self) FG.Weltkarte:FundTooltip(self, karte, f) end)
@@ -221,6 +223,24 @@ function Kf:Auffrischen()
         end
       end
     end
+  end
+  -- Reichweitenkreis: so weit reichen Ansage und Puls
+  if FG.db.reichweitenKreis and flaeche.CreateLine then
+    local _, _, k = self:Punkt(karte, px, py, px, py, groesse)
+    local r = (FG.db.pulsWeite or 60) * k
+    local a = FG.farben.akzent
+    local SEG = 32
+    for i = 1, SEG do
+      local ln = Linie(nl + i)
+      local w0, w1 = (i - 1) / SEG * 2 * math.pi, i / SEG * 2 * math.pi
+      ln:SetThickness(1.5)
+      ln:SetColorTexture(a[1], a[2], a[3], 0.5)
+      ln:SetStartPoint("CENTER", flaeche, math.cos(w0) * r, math.sin(w0) * r)
+      ln:SetEndPoint("CENTER", flaeche, math.cos(w1) * r, math.sin(w1) * r)
+      ln:Show()
+    end
+    nl = nl + SEG
+    self.kreis = r
   end
   for i = nl + 1, #linien do linien[i]:Hide() end
   self.linien = nl

@@ -196,6 +196,7 @@ end
 
 -- Einzelner Fundort: Favoriten sind immer sichtbar.
 function F:FundSichtbar(f)
+  if f.bis and f.bis > time() then return false end   -- vorübergehend ausgeblendet (Alt+Rechtsklick)
   return f.fav or self:Sichtbar(f.t)
 end
 

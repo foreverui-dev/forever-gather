@@ -44,20 +44,29 @@ end
 
 local function Takt()
   local karte, px, py = P:Spieler()
+  M.naechster, M.naechsterM, M.naechsterO, M.naechsterS = nil, nil, nil, nil
   local n = 0
   local kampf = FG.db.kampfAusblenden and UnitAffectingCombat and UnitAffectingCombat("player")
   if karte and P:Groesse(karte) then
     local radius = M:Radius()
     local zeigen = FG.db.minikarte and not kampf
     local groesse = (FG.db.minikartePinGroesse or 13) * FG:Groesse()
+    local maxWeite = FG.db.minikarteMaxWeite or 0
+    local H = FG.Hervorheben
     for _, f in ipairs(F:Liste(karte)) do
       if F:FundSichtbar(f) then
         local o, s = P:Versatz(karte, px, py, f.x, f.y)
+        local m = math.sqrt(o * o + s * s)
+        if F:Abbaubar(f.t) ~= false and not F:Abgeerntet(f) and (not M.naechsterM or m < M.naechsterM) then
+          M.naechster, M.naechsterM, M.naechsterO, M.naechsterS = f, m, o, s
+        end
         local x, y, amRand = M:Versatz(o, s, radius, FG.db.minikarteRand)
+        if maxWeite > 0 and m > maxWeite then x = nil end
         if x and zeigen then
           n = n + 1
           local p = W.NeuerPin(Minimap, n, pins)
-          W:PinGestalten(p, f, amRand and groesse * 0.7 or groesse)
+          local faktor = (H and not amRand) and H:Puls(f, m) or 1
+          W:PinGestalten(p, f, (amRand and groesse * 0.7 or groesse) * faktor)
           if amRand then p:SetAlpha(0.6) end
           p:ClearAllPoints()
           p:SetPoint("CENTER", Minimap, "CENTER", x, y)
@@ -68,8 +77,7 @@ local function Takt()
         end
         -- Ansage, Klang und Alarm, wenn ein Fundort in Reichweite kommt
         local selten = FG.db.seltenAlarm and F:Selten(f.t)
-        if FG.db.ansage or FG.db.klang or selten then
-          local m = math.sqrt(o * o + s * s)
+        if (FG.db.ansage or FG.db.klang or selten) and not (FG.Komfort and FG.Komfort:Ruhig()) then
           local weite = (FG.db.ansageEntfernung or 40) * (selten and 2 or 1)
           if m <= weite then
             if not angesagt[f] and F:Abbaubar(f.t) ~= false and not F:Abgeerntet(f) then
@@ -91,6 +99,7 @@ local function Takt()
   end
   for i = n + 1, #pins do pins[i]:Hide() end
   M.anzahl = n
+  if FG.Hervorheben then FG.Hervorheben:Takt(karte, px, py) end
 
   -- nächster Punkt der aktiven Route
   local R = FG.Routen

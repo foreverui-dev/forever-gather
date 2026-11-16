@@ -117,6 +117,36 @@ function La:Alle(art, suche)
   return liste
 end
 
+-- Wert aller Sammelmaterialien auf allen Charakteren (Händler- oder Auktionspreis).
+function La:Gesamtwert()
+  local wert = 0
+  for _, e in ipairs(self:Alle()) do wert = wert + F:Preis(e.item) * e.menge end
+  return wert
+end
+
+-- Bestand je Tag merken (14 Tage), um Veränderungen zu zeigen.
+function La:Schnappschuss()
+  local tag = date("%Y-%m-%d")
+  local stand = {}
+  for _, e in ipairs(self:Alle()) do stand[e.item] = e.menge end
+  FG.root.lagerTage = FG.root.lagerTage or {}
+  FG.root.lagerTage[tag] = stand
+  local tage = {}
+  for t in pairs(FG.root.lagerTage) do tage[#tage + 1] = t end
+  table.sort(tage)
+  for i = 1, #tage - 14 do FG.root.lagerTage[tage[i]] = nil end
+end
+
+-- Veränderung gegenüber dem letzten früheren Tag (nil, wenn es keinen gibt).
+function La:Veraenderung(item, jetzt)
+  local tage = FG.root.lagerTage
+  if not tage then return end
+  local heute, vorher = date("%Y-%m-%d"), nil
+  for t in pairs(tage) do if t < heute and (not vorher or t > vorher) then vorher = t end end
+  if not vorher then return end
+  return (jetzt or 0) - (tage[vorher][item] or 0)
+end
+
 function La:Vergessen(key)
   FG.root.charaktere[key] = nil
   FG:Rufe("lager")
@@ -187,7 +217,8 @@ end
 
 function La:Start()
   self:TaschenLesen()
-  FG:Ereignis("BAG_UPDATE_DELAYED", function() La:TaschenLesen() end)
+  FG:Ereignis("BAG_UPDATE_DELAYED", function() La:TaschenLesen(); FG:Sicher("Lager", La.Schnappschuss, La) end)
+  FG:Sicher("Lager", La.Schnappschuss, La)
   FG:Ereignis("BANKFRAME_OPENED", function() La:BankLesen(); La.bankOffen = true end)
   FG:Ereignis("BANKFRAME_CLOSED", function() La.bankOffen = false end)
   FG:Ereignis("PLAYERBANKSLOTS_CHANGED", function() if La.bankOffen then La:BankLesen() end end)
