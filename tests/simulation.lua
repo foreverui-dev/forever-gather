@@ -189,8 +189,15 @@ Ereignis("PLAYER_LOGIN")
 Timer()
 pruefe(#ForeverGatherDB.fehler == 0 and ForeverGatherDB.fehlerStand == FG.CODESTAND, "alte Fehler aus früheren Versionen werden beim Laden entfernt")
 local F, R, T, La, M, W, P = FG.Fundorte, FG.Routen, FG.Teilen, FG.Lager, FG.Minikarte, FG.Weltkarte, FG.Position
-pruefe(ForeverGatherFenster and ForeverGatherFenster:IsShown(), "Willkommensfenster beim ersten Start")
+pruefe(not (ForeverGatherFenster and ForeverGatherFenster:IsShown()), "Leise ab Werk: kein Fenster beim ersten Start")
+pruefe(FG.db.leiseAbWerk == true and FG.db.seltenAlarm == false and FG.db.tipps == false and FG.db.taschenWarnung == 0,
+  "Leise ab Werk: Alarme, Tipps und Warnungen ab Werk aus")
+FG.Fenster:Oeffnen("start")
+pruefe(ForeverGatherFenster and ForeverGatherFenster:IsShown(), "Willkommensseite lässt sich öffnen")
 FG.Fenster:Schliessen()
+-- für die folgenden Prüfungen die Hinweise wieder einschalten (Werte vor „Leise ab Werk“)
+for k, v in pairs({ seltenRand = true, seltenAlarm = true, neueSorten = true, lehrerHinweis = true, rekordAnsage = true,
+  sitzungsEnde = true, taschenWarnung = 2, tipps = true, abseitsWeite = 400, rundenAnsage = true }) do FG.db[k] = v end
 pruefe(FG.db.eingerichtet == true, "nach dem Schließen als eingerichtet markiert")
 
 print("-- Position")

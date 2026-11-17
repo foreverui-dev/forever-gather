@@ -22,7 +22,7 @@ local plugin = {
     { id = "kampfAusblenden", art = "schalter", titel = L"Im Kampf ausblenden", text = L"Keine Symbole auf der Minikarte während eines Kampfs.", standard = true },
     { id = "puls", art = "schalter", titel = L"Nahe Vorkommen pulsieren", text = L"Symbole in Reichweite werden größer und kleiner.", standard = true },
     { id = "richtungspfeil", art = "schalter", titel = L"Richtungspfeil", text = L"Pfeil am Minikartenrand zum nächsten Vorkommen.", standard = true },
-    { id = "seltenAlarm", art = "schalter", titel = L"Alarm bei Seltenem", text = L"Schwarzer Lotus, Echtsilber und Co. in der Nähe melden.", standard = true },
+    { id = "seltenAlarm", art = "schalter", titel = L"Alarm bei Seltenem", text = L"Schwarzer Lotus, Echtsilber und Co. in der Nähe melden.", standard = false },
     { id = "abgeerntetMinuten", art = "regler", titel = L"Abgeerntet markieren (Minuten)", min = 0, max = 30, schritt = 1, standard = 5 },
     { id = "radar", art = "schalter", titel = L"Radar", text = L"Fenster mit den nächsten Fundorten, Pfeil und Entfernung.", standard = false },
     { id = "kartenfenster", art = "schalter", titel = L"Kartenfenster", text = L"Kleine Karte der Gegend mit Fundorten und Route.", standard = false },

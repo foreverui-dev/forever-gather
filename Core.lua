@@ -79,7 +79,7 @@ FG.STANDARD = {
   richtungspfeil = true,    -- Pfeil am Minikartenrand zum nächsten Vorkommen
   nahHinweis = false,       -- Name, Entfernung und Richtung oben am Bildschirm
   nahWeite = 60,
-  seltenRand = true,        -- Bildschirmrand leuchtet bei Seltenem in der Nähe
+  seltenRand = false,       -- Bildschirmrand leuchtet bei Seltenem in der Nähe
   seltenWeite = 100,
   hervorFarbe = "akzent",   -- akzent | art | weiss
   hud = false,              -- Kreiskarte in der Bildschirmmitte
@@ -90,26 +90,26 @@ FG.STANDARD = {
   punkteMarke = true,       -- Punkt am Symbol, wenn es Fertigkeitspunkte bringt
   minikarteMaxWeite = 0,    -- nur Vorkommen bis zu dieser Entfernung (0 = alle)
   -- 0.4: Fortschritt, Chronik, Komfort, Routen
-  neueSorten = true,
-  lehrerHinweis = true,
-  rekordAnsage = true,
-  sitzungsEnde = true,
-  taschenWarnung = 2,       -- Warnung ab so wenigen freien Plätzen (0 = aus)
+  neueSorten = false,
+  lehrerHinweis = false,
+  rekordAnsage = false,
+  sitzungsEnde = false,
+  taschenWarnung = 0,       -- Warnung ab so wenigen freien Plätzen (0 = aus)
   ruheInStaedten = true,
   kampfRuhe = true,
-  tipps = true,
+  tipps = false,
   kette = false,            -- nach dem Sammeln Wegpunkt zum nächsten Vorkommen
   routeLeerUeberspringen = true,
   routeNurAbbaubar = false,
   routeKampfPause = true,
-  abseitsWeite = 400,       -- Hinweis, wenn du so weit von der Route weg bist (0 = aus)
+  abseitsWeite = 0,         -- Hinweis, wenn du so weit von der Route weg bist (0 = aus)
   klang = false,            -- Klang, wenn ein Fundort in Reichweite kommt
   kampfAusblenden = true,   -- im Kampf keine Symbole auf der Minikarte
   seltenHervorheben = true, -- seltene Vorkommen größer
-  seltenAlarm = true,       -- Alarm, wenn ein seltenes Vorkommen in der Nähe ist
+  seltenAlarm = false,      -- Alarm, wenn ein seltenes Vorkommen in der Nähe ist
   kontinent = true,         -- Fundorte auch auf der Kontinentkarte
   zieleHervorheben = true,  -- Vorkommen mit offenem Sammelziel größer
-  rundenAnsage = true,      -- Ansage, wenn eine Runde der Route geschafft ist
+  rundenAnsage = false,     -- Ansage, wenn eine Runde der Route geschafft ist
   -- Allgemein
   minimapKnopf = true,
   minimapWinkel = 200,
@@ -252,7 +252,16 @@ local function ergaenze(ziel, vorlage)
     elseif type(v) == "table" and type(ziel[k]) == "table" then ergaenze(ziel[k], v) end
   end
 end
-function FG:Standardwerte(ziel) ergaenze(ziel, self.STANDARD) end
+-- Leise ab Werk (seit 17.11.2026): keine Töne, Chat-Meldungen oder Einblendungen, solange man sie nicht
+-- selbst einschaltet. Bestehende Einstellungen bekommen diese Werte einmalig, danach gilt die eigene Wahl.
+FG.LEISE = { "seltenRand", "seltenAlarm", "neueSorten", "lehrerHinweis", "rekordAnsage", "sitzungsEnde", "taschenWarnung", "tipps", "abseitsWeite", "rundenAnsage" }
+function FG:Standardwerte(ziel)
+  ergaenze(ziel, self.STANDARD)
+  if not ziel.leiseAbWerk then
+    for _, k in ipairs(self.LEISE) do ziel[k] = self.STANDARD[k] end
+    ziel.leiseAbWerk = true
+  end
+end
 
 function FG:Meldung(text, ...)
   DEFAULT_CHAT_FRAME:AddMessage(FG.gold .. "Forever Harvest:|r " .. FG.Einzahl(select("#", ...) > 0 and text:format(...) or text))
@@ -461,9 +470,7 @@ FG:Ereignis("PLAYER_LOGIN", function()
     if m.Start then FG:Sicher(m.name, m.Start, m) end
   end
   FG:Anwenden()
-  if not FG.db.eingerichtet and FG.Fenster then
-    C_Timer.After(3, function() FG:Sicher("Willkommen", FG.Fenster.Oeffnen, FG.Fenster, "start") end)
-  end
+  -- Leise ab Werk: kein Fenster öffnet sich von selbst. Der Assistent steht in den Einstellungen.
 end)
 
 ---------------------------------------------------------------------------
