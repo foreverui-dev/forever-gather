@@ -4,11 +4,13 @@
 
 - Neu: Plugin für ForeverUI. Ist ForeverUI installiert, erscheinen die wichtigsten Einstellungen dort unter „Plugins“ (Welt- und Minikarte, Symbolgrößen, Filter, Hervorheben, Radar, Kartenfenster, Tooltips, Teilen). Forever Harvest läuft weiter genauso auch ohne ForeverUI.
 - Mit eingeschaltetem ForeverUI-Interface übernimmt Forever Harvest dessen Akzentfarbe. Abschaltbar mit „Aussehen von ForeverUI übernehmen“.
+- Neues Design „Klar“ wie in ForeverUI: Schalter statt Häkchen und flache Knöpfe in den Einstellungen.
 
 **English**
 
 - New: plugin for ForeverUI. With ForeverUI installed, the main settings appear there under “Plugins” (world map and minimap, icon sizes, filters, highlighting, radar, map window, tooltips, sharing). Forever Harvest keeps working exactly the same without ForeverUI.
 - With the ForeverUI interface turned on, Forever Harvest takes on its accent colour. Can be turned off with “Use ForeverUI's look”.
+- New “Clear” design as in ForeverUI: switches instead of checkboxes and flat buttons in the settings.
 
 ## 0.4.0
 

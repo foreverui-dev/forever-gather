@@ -46,7 +46,7 @@ local function Text(eltern, schrift, text, breite)
 end
 
 local function Knopf(eltern, text, breite, fn)
-  local k = CreateFrame("Button", nil, eltern, "UIPanelButtonTemplate")
+  local k = FG.FlachKnopf(eltern)
   k:SetSize(breite or 140, 22)
   k:SetText(text)
   k:SetScript("OnClick", function() FG:Sicher("Knopf", fn) end)
@@ -56,15 +56,52 @@ end
 local function merke(e) elemente[#elemente + 1] = e; return e end
 
 -- Schalter mit Beschriftung, gebunden an einen Einstellungswert (lesen/schreiben als Funktionen).
+-- Schalter im ForeverUI-Stil „Klar“ (statt Häkchen): Spur in Akzentfarbe, wenn an, weißer Knopf wandert
+-- nach rechts. Verhält sich wie ein CheckButton (SetChecked, GetChecked, OnClick schaltet vorher um).
+local function Umschalter(eltern)
+  local c = CreateFrame("Button", nil, eltern)
+  c:SetSize(34, 18)
+  local spur = c:CreateTexture(nil, "BACKGROUND")
+  spur:SetAllPoints()
+  local knopf = c:CreateTexture(nil, "ARTWORK")
+  knopf:SetSize(14, 14)
+  knopf:SetColorTexture(1, 1, 1, 1)
+  local hl = c:CreateTexture(nil, "HIGHLIGHT")
+  hl:SetAllPoints()
+  hl:SetColorTexture(1, 1, 1, 0.08)
+  c.an = false
+  c.SetChecked = function(self, an)
+    self.an = an and true or false
+    knopf:ClearAllPoints()
+    if self.an then
+      local a = FG.farben.akzent
+      spur:SetColorTexture(a[1], a[2], a[3], 1)
+      knopf:SetPoint("RIGHT", -2, 0)
+    else
+      spur:SetColorTexture(1, 1, 1, 0.18)
+      knopf:SetPoint("LEFT", 2, 0)
+    end
+  end
+  c.GetChecked = function(self) return self.an end
+  local setze = c.SetScript
+  c.SetScript = function(self, name, fn)
+    if name == "OnClick" and fn then
+      return setze(self, name, function(s, ...) s:SetChecked(not s.an); return fn(s, ...) end)
+    end
+    return setze(self, name, fn)
+  end
+  c:SetChecked(false)
+  return c
+end
+
 local function Schalter(eltern, titel, hilfe, lesen, schreiben)
   local f = CreateFrame("Frame", nil, eltern)
   f:SetSize(260, 36)
-  local c = CreateFrame("CheckButton", nil, f, "UICheckButtonTemplate")
-  c:SetSize(24, 24)
-  c:SetPoint("TOPLEFT", 0, 2)
-  local l = Text(f, "GameFontHighlight", titel, 228)
-  l:SetPoint("TOPLEFT", 28, -3)
-  local d = Text(f, "GameFontDisableSmall", hilfe or "", 228)
+  local c = Umschalter(f)
+  c:SetPoint("TOPLEFT", 0, -2)
+  local l = Text(f, "GameFontHighlight", titel, 214)
+  l:SetPoint("TOPLEFT", 42, -3)
+  local d = Text(f, "GameFontDisableSmall", hilfe or "", 214)
   d:SetPoint("TOPLEFT", l, "BOTTOMLEFT", 0, -1)
   c:SetScript("OnClick", function(self)
     schreiben(self:GetChecked() and true or false)
