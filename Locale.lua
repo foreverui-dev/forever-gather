@@ -613,3 +613,9 @@ E["47. Veränderung des Lagers seit gestern."] = "47. Storage change since yeste
 E["48. Sammelberufe aller Charaktere im Fortschritt."] = "48. Gathering professions of all characters under Progress."
 E["49. Wer wie viele Fundorte geteilt hat (/fg beitraege)."] = "49. Who shared how many nodes (/fg beitraege)."
 E["50. Diese Seite mit allen Neuigkeiten."] = "50. This page with all the news."
+-- 0.5 ForeverUI-Plugin
+E["Aussehen von ForeverUI übernehmen"] = "Use ForeverUI's look"
+E["Akzentfarbe wie im ForeverUI-Interface, solange es eingeschaltet ist."] = "Accent colour like the ForeverUI interface while it is turned on."
+E["Symbolgröße auf der Weltkarte"] = "Icon size on the world map"
+E["Symbolgröße auf der Minikarte"] = "Icon size on the minimap"
+E["Abgeerntet markieren (Minuten)"] = "Mark gathered nodes (minutes)"

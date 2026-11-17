@@ -6,6 +6,7 @@
 ## Version: @project-version@
 ## SavedVariables: ForeverGatherDB
 ## SavedVariablesPerCharacter: ForeverGatherCharDB
+## OptionalDeps: ForeverUI
 ## IconTexture: Interface\Icons\INV_Misc_Flower_02
 ## X-Website: https://foreverui.de/
 ## X-Category: Professions
@@ -33,3 +34,4 @@ Chronik.lua
 Komfort.lua
 Neuigkeiten.lua
 MinimapKnopf.lua
+ForeverUIPlugin.lua

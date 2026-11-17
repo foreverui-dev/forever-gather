@@ -828,6 +828,26 @@ pruefe(FG.Einzahl("1 Kräuter, 1 bekannte Fundorte") == "1 Kraut, 1 bekannter Fu
 pruefe(FG.Einzahl("1 nodes, 21 finds") == "1 node, 21 finds", "Einzahl Englisch")
 if os.getenv("FEHLENDE") then for _, t in ipairs(fehlend) do print(t) end end
 
+print("-- 0.5: Plugin für ForeverUI")
+local pl = FG.plugin
+local q = _G.ForeverUIPlugins
+pruefe(pl and q and q[#q] == pl and pl.id == "harvest", "ForeverUI-Plugin wartet auf ForeverUI")
+local passt = #pl.einstellungen >= 15
+for _, o in ipairs(pl.einstellungen) do
+  if FG.STANDARD[o.id] ~= o.standard then passt = false; print("         abweichend: " .. o.id) end
+end
+pruefe(passt, "Plugin-Einstellungen passen zu den Standardwerten")
+pl.schreiben("pinGroesse", 20)
+pruefe(pl.lesen("pinGroesse") == 20 and FG.db.pinGroesse == 20, "Plugin schreibt in die Einstellungen")
+pl.schreiben("pinGroesse", 16)
+pl.aussehen({ an = true, akzent = { 0.1, 0.2, 0.3 } })
+pruefe(FG.farben.akzent[3] == 0.3, "Akzentfarbe von ForeverUI übernommen")
+pl.schreiben("interfaceAussehen", false)
+pruefe(FG.farben.akzent[3] ~= 0.3, "abschaltbar: eigene Akzentfarbe zurück")
+pl.schreiben("interfaceAussehen", true)
+pl.aussehen({ an = false })
+pruefe(FG.farben.akzent[3] ~= 0.3, "Interface aus: eigene Akzentfarbe")
+
 local fl = ForeverGatherDB.fehler
 pruefe(not fl or #fl == 0, "keine Fehler im Protokoll" .. (fl and fl[1] and (": " .. fl[1]) or ""))
 if fl then for _, f in ipairs(fl) do print("         " .. f) end end

@@ -123,6 +123,8 @@ FG.STANDARD = {
   allesGroesser = false,
   wenigerBewegung = false,
   sprache = "auto",
+  -- 0.5
+  interfaceAussehen = true, -- mit ForeverUI-Interface dessen Akzentfarbe
 }
 
 ---------------------------------------------------------------------------
@@ -148,6 +150,7 @@ end
 function FG:AkzentAnwenden()
   local wahl = (self.db and self.db.akzent) or "gold"
   local farbe = self.AKZENTE[1][3]
+  if self.fuiAkzent then setze(self.farben.akzent, self.fuiAkzent); return end
   for _, a in ipairs(self.AKZENTE) do
     if a[1] == wahl then
       if a[3] then farbe = a[3]
