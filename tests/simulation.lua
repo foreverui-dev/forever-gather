@@ -185,7 +185,11 @@ Ereignis("ADDON_LOADED", "ForeverGather")
 Ereignis("PLAYER_LOGIN")
 Timer()
 local F, R, T, La, M, W, P = FG.Fundorte, FG.Routen, FG.Teilen, FG.Lager, FG.Minikarte, FG.Weltkarte, FG.Position
-pruefe(ForeverGatherFenster and ForeverGatherFenster:IsShown(), "Willkommensfenster beim ersten Start")
+pruefe(not (ForeverGatherFenster and ForeverGatherFenster:IsShown()), "Leise ab Werk: kein Fenster beim ersten Start")
+pruefe(FG.db.leiseAbWerk == true and FG.db.seltenAlarm == false and FG.db.rundenAnsage == false, "Leise ab Werk: Alarme ab Werk aus")
+FG.Fenster:Oeffnen("start")
+pruefe(ForeverGatherFenster and ForeverGatherFenster:IsShown(), "Willkommensseite lässt sich öffnen")
+FG.db.seltenAlarm, FG.db.rundenAnsage = true, true -- für die folgenden Prüfungen
 FG.Fenster:Schliessen()
 pruefe(FG.db.eingerichtet == true, "nach dem Schließen als eingerichtet markiert")
 

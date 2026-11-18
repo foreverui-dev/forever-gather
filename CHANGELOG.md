@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.2.2
+
+- Leise ab Werk: kein Alarm-Ton, keine Schlachtzugswarnung bei Seltenem, keine Rundenansage und kein Fenster, das von selbst aufgeht. Alles lässt sich in den Einstellungen wieder einschalten (/fg). Bestehende Einstellungen werden dafür einmalig umgestellt.
+- Quiet by default: no alarm sound, no raid warning for rare nodes, no lap announcements and no window that opens on its own. Everything can be turned back on in the settings (/fg). Existing settings are switched over once.
+
 ## 0.2.1
 
 - Richtige Einzahl in Texten: „1 Fundort“ statt „1 Fundorte“, „1 Charakter“ statt „1 Charakteren“, kein doppelter Punkt mehr hinter dem Datum.

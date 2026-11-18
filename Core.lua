@@ -56,10 +56,10 @@ FG.STANDARD = {
   klang = false,            -- Klang, wenn ein Fundort in Reichweite kommt
   kampfAusblenden = true,   -- im Kampf keine Symbole auf der Minikarte
   seltenHervorheben = true, -- seltene Vorkommen größer
-  seltenAlarm = true,       -- Alarm, wenn ein seltenes Vorkommen in der Nähe ist
+  seltenAlarm = false,      -- Alarm, wenn ein seltenes Vorkommen in der Nähe ist
   kontinent = true,         -- Fundorte auch auf der Kontinentkarte
   zieleHervorheben = true,  -- Vorkommen mit offenem Sammelziel größer
-  rundenAnsage = true,      -- Ansage, wenn eine Runde der Route geschafft ist
+  rundenAnsage = false,     -- Ansage, wenn eine Runde der Route geschafft ist
   -- Allgemein
   minimapKnopf = true,
   minimapWinkel = 200,
@@ -180,7 +180,16 @@ local function ergaenze(ziel, vorlage)
     elseif type(v) == "table" and type(ziel[k]) == "table" then ergaenze(ziel[k], v) end
   end
 end
-function FG:Standardwerte(ziel) ergaenze(ziel, self.STANDARD) end
+-- Leise ab Werk (seit 0.2.2): keine Töne, Alarme, Ansagen oder Fenster, solange man sie nicht selbst einschaltet.
+-- Bestehende Einstellungen bekommen diese Werte einmalig, danach gilt die eigene Wahl.
+FG.LEISE = { "seltenAlarm", "rundenAnsage" }
+function FG:Standardwerte(ziel)
+  ergaenze(ziel, self.STANDARD)
+  if not ziel.leiseAbWerk then
+    for _, k in ipairs(self.LEISE) do ziel[k] = self.STANDARD[k] end
+    ziel.leiseAbWerk = true
+  end
+end
 
 function FG:Meldung(text, ...)
   DEFAULT_CHAT_FRAME:AddMessage(FG.gold .. "Forever Harvest:|r " .. FG.Einzahl(select("#", ...) > 0 and text:format(...) or text))
@@ -383,9 +392,7 @@ FG:Ereignis("PLAYER_LOGIN", function()
     if m.Start then FG:Sicher(m.name, m.Start, m) end
   end
   FG:Anwenden()
-  if not FG.db.eingerichtet and FG.Fenster then
-    C_Timer.After(3, function() FG:Sicher("Willkommen", FG.Fenster.Oeffnen, FG.Fenster, "start") end)
-  end
+  -- Leise ab Werk: kein Fenster öffnet sich von selbst (/fg öffnet es)
 end)
 
 ---------------------------------------------------------------------------

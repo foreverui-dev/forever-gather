@@ -44,7 +44,8 @@ function E:Alarm(text)
   if RaidNotice_AddMessage and RaidWarningFrame then
     pcall(RaidNotice_AddMessage, RaidWarningFrame, text, ChatTypeInfo and ChatTypeInfo.RAID_WARNING or { r = 1, g = 0.8, b = 0.2 })
   end
-  if PlaySound then pcall(PlaySound, SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959) end
+  -- Leise ab Werk: Ton nur mit eingeschaltetem Klang
+  if FG.db.klang and PlaySound then pcall(PlaySound, SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959) end
   FG:Sprechen(text, true)
 end
 
