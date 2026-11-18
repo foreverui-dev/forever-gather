@@ -93,6 +93,14 @@ Außerdem (bisher unveröffentlicht als 0.3.0):
 - Das Fehlerprotokoll beginnt mit jeder neuen Version leer. Alte, längst behobene Einträge (z. B. der Tooltip-Fehler „secret keys“ aus 0.1) tauchen nicht mehr als aktuelle Fehler auf. `/fg fehler leeren` leert es von Hand.
 - Neues Kartenfenster: eine kleine Karte der Gegend in einem eigenen, verschiebbaren Fenster. Sie zeigt deine Position mit Blickrichtung, alle Fundorte und Routen als Linien. Mit dem Mausrad zoomst du, ein Klick auf einen Fundort setzt einen Wegpunkt. Öffnen mit `/fg karte`, dem Knopf in der Übersicht oder einem Tastenkürzel. Liefert das Spiel kein Kartenbild, zeigt das Fenster Fundorte und Route ohne Bild.
 
+## 0.2.2
+
+- Leise ab Werk: kein Alarm-Ton, keine Schlachtzugswarnung bei Seltenem, keine Rundenansage und kein Fenster, das von selbst aufgeht. Alles lässt sich in den Einstellungen wieder einschalten (/fg). Bestehende Einstellungen werden dafür einmalig umgestellt.
+
+**English**
+
+- Quiet by default: no alarm sound, no raid warning for rare nodes, no lap announcements and no window that opens on its own. Everything can be turned back on in the settings (/fg). Existing settings are switched over once.
+
 ## 0.2.1
 
 - Richtige Einzahl in Texten: „1 Fundort“ statt „1 Fundorte“, „1 Charakter“ statt „1 Charakteren“, kein doppelter Punkt mehr hinter dem Datum.
